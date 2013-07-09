@@ -1,0 +1,2 @@
+cd /sources/blfs
+wget http://www.freedesktop.org/software/fontconfig/release/fontconfig-2.10.93.tar.bz2

@@ -10,3 +10,4 @@ sudo apt-get install texinfo
 sudo apt-get install bzip2
 sudo apt-get install perl
 sudo apt-get install zerofree  # used to shrink the vdisk, thus can vboxmanage modyhd --compact to compact it.
+sudo apt-get install axel
