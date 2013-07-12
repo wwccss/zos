@@ -1,8 +1,8 @@
 cd /sources/blfs
-#tar xvf php*.tar.bz2
+tar xvf php*.tar.bz2
 cd php*
 
-#./configure --prefix=/usr \
+./configure --prefix=/usr \
             --sysconfdir=/etc \
             --with-apxs2 \
             --with-config-file-path=/etc \
@@ -19,6 +19,7 @@ cd php*
             --with-ldap-sasl \
             --enable-mbstring \
             --with-mysql \
+            --with-mysqli \
             --with-mysql-sock=/var/run/mysqld/mysqld.sock \
             --with-pdo-mysql \
             --without-pdo-sqlite \
@@ -36,7 +37,8 @@ cd php*
             --with-freetype-dir=/usr/ \
             --enable-gd-native-ttf \
             --enable-gd-jis-conv 
-#make
+make clean
+make
 
 sudo make install &&
 sudo install -v -m644 php.ini-production /etc/php.ini &&
