@@ -7,7 +7,7 @@ make
 sudo make install
 
 sudo chown z:z /etc/php.ini
-cat > /etc/php.ini << "EOF"
+cat >> /etc/php.ini << "EOF"
 zend_extension=/usr/lib/php/extensions/no-debug-zts-20100525/opcache.so
 opcache.memory_consumption=128
 opcache.interned_strings_buffer=8
