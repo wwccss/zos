@@ -17,3 +17,5 @@ sudo  mkdir -v /tmp/minify/var/log/httpd -p
 
 sudo rm -frv /tmp/minify/sources
 sudo rm -frv /tmp/minify/tools
+
+sudo rm -frv /tmp/minify/srv/auth/users
