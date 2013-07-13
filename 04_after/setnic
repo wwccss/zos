@@ -1,0 +1,40 @@
+#!/usr/bin/env php
+<?php
+/**
+ * This shell is used to correct the name of net card.
+ */
+
+/* First try to get net cars from /sys/class/net. Only get the type=1. */
+$nicName = '';
+$nics = glob('/sys/class/net/*');
+foreach($nics as $nic)
+{
+    $nicType = file_get_contents($nic . '/type');
+    if($nicType == 1)
+    {
+        $nicName = basename($nic);
+        $nicMac  = trim(file_get_contents($nic . '/address'));
+        break;
+    }
+}
+if(!$nicName) exit(1);
+
+/* Update the mac address in /etc/udev/rules.d/70-persistent-net.rules. */
+$rulesContents = file_get_contents('/etc/udev/rules.d/70-persistent-net.rules');
+$rulesChanged  = preg_replace('/ATTR{address}==".*", ATTR{dev_id}/', "ATTR{address}==\"$nicMac\", ATTR{dev_id}", $rulesContents);
+file_put_contents('/etc/udev/rules.d/70-persistent-net.rules', $rulesChanged);
+
+/* If there's no file named ifconfig.$nicName in /etc/syscofnig/, rename it. */
+if(!file_exists("/etc/sysconfig/ifconfig.$nicName"))
+{
+    $ifconfigs = glob('/etc/sysconfig/ifconfig*');
+    if(!$ifconfigs) exit(1);
+
+    /* Just change the first one. */
+    $file2Change  = $ifconfigs[0];
+    $name2Change  = str_replace('ifconfig.', '', basename($file2Change));
+    $lines2Change = file_get_contents($file2Change);
+    file_put_contents($file2Change, str_replace($name2Change, $nicName, $lines2Change));
+    rename($file2Change, str_replace($name2Change, $nicName, $file2Change));
+    exit(0);
+}
