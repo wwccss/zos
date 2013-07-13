@@ -12,6 +12,7 @@ sudo cp -Rav /usr/bin/diff       /usr/binnew
 sudo cp -Rav /usr/bin/dir        /usr/binnew
 sudo cp -Rav /usr/bin/dirname    /usr/binnew
 sudo cp -Rav /usr/bin/du         /usr/binnew
+sudo cp -Rav /usr/bin/env        /usr/binnew
 sudo cp -Rav /usr/bin/expr       /usr/binnew
 sudo cp -Rav /usr/bin/file       /usr/binnew
 sudo cp -Rav /usr/bin/gawk       /usr/binnew
