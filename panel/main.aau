@@ -1,0 +1,278 @@
+import win.ui;
+import process;
+/*DSG{{*/
+var winform = ..win.form( bottom=300;parent=...;right=500;text="AAuto Form" )
+winform.add(  )
+/*}}*/
+
+winform.wndproc = function(hwnd,message,wParam,lParam){
+	select( message ) { 
+		case 0x205/*_WM_RBUTTONUP*/{
+			//鼠标右键弹起,下面获取坐标
+			var x,y = win.getMessagePos(lParam);
+			
+		}
+		else{
+			
+		}
+	}
+	//无返回值则继续调用默认回调函数
+}
+
+ 
+import web.layout;
+ 
+var wbLayout = web.layout(winform);
+
+wbLayout.html = /**
+<body>
+  <div id='buttons'>
+    <button type='button' name='start'>启动</button>
+    <button type='button' name='access'>访问</button>
+    <button type='button' name='stop'>停止</button>
+    <button type='button' name='snapshot'>备份</button>
+    <button type='button' name='exit'>退出</button>
+  </div>
+  <div>
+    <textarea id='output'>欢迎使用禅道虚拟机控制面板</textarea>
+  </div>
+</body>
+**/
+ 
+wbLayout.css = /**
+button 
+{
+  width:50px;
+  margin:15px 20px 15px 0px;
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #333;
+  text-align: center;
+  text-shadow: 0 1px 1px rgba(255,255,255,0.75);
+  vertical-align: middle;
+  cursor: pointer;
+  background-color: #f5f5f5;
+  background-image: -moz-linear-gradient(top,#fff,#e6e6e6);
+  background-image: -webkit-gradient(linear,0 0,0 100%,from(#fff),to(#e6e6e6));
+  background-image: -webkit-linear-gradient(top,#fff,#e6e6e6);
+  background-image: -o-linear-gradient(top,#fff,#e6e6e6);
+  background-image: linear-gradient(to bottom,#fff,#e6e6e6);
+  background-repeat: repeat-x;
+  border: 1px solid #ccc;
+  border-color: #e6e6e6 #e6e6e6 #bfbfbf;
+  border-color: rgba(0,0,0,0.1) rgba(0,0,0,0.1) rgba(0,0,0,0.25);
+  border-bottom-color: #b3b3b3;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffff',endColorstr='#ffe6e6e6',GradientType=0);
+  filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+  -webkit-box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05);
+  -moz-box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05);
+}
+#buttons button:last-child {margin-right:0px}
+textarea {width:100%;height:220px}
+**/
+
+wbLayout.onButtonClick = function (ltTarget,ltEle,reason,behaviorParams)
+{
+	if(ltEle.name == 'start')    start();
+	if(ltEle.name == 'access')   access();
+	if(ltEle.name == 'stop')     stop();
+	if(ltEle.name == 'snapshot') snapshot();
+	if(ltEle.name == 'exit')     exit();
+}
+
+var TMP_FILE = 'tmp';
+var OK_FILE  = 'ok';
+
+var isInstall  = false;
+var vboxManageExe = "";
+
+var getVboxManage  = "..\bin\getVboxManage.bat";
+var testVboxManage = "..\bin\testVboxManage.bat";
+
+var isExist    = false;
+var isExistBat = "..\bin\isExist.bat";
+
+var isRunning    = false;
+var isRunningBat = "..\bin\isRunning.bat";
+
+var startBat     = "..\bin\start.bat";
+var installBat   = "..\bin\install.bat";
+var uninstallBat = "..\bin\uninstall.bat";
+var accessBat    = "..\bin\access.bat";
+var stopBat      = "..\bin\stop.bat";
+var snapshotBat  = "..\bin\snapshot.bat";
+
+function print(content)
+{
+	wbLayout.getEle("output").value += '\n' + tostring(content);
+}
+
+ function exec(command)
+ {
+ 	var batFile = '';
+ 	var execCmd = '';
+ 	var result = false;
+ 	
+ 	select(command)
+ 	{
+ 	    case 'getVboxManage' { batFile = getVboxManage;}
+ 	    case 'testVboxManage'{ batFile = testVboxManage;}
+ 		case 'isExist'  	 { batFile = isExistBat;}
+ 		case 'isRunning'	 { batFile = isRunningBat;}
+ 		case 'install'		 { batFile = installBat;}
+ 		case 'uninstall'	 { batFile = uninstallBat;}
+ 		case 'start'      	 { batFile = startBat;}	
+ 		case 'access'  		 { batFile = accessBat;}
+ 		case 'stop'    		 { batFile = stopBat;}
+ 		case 'snapshot'    	 { batFile = snapshotBat;}
+ 	}
+	if(!io.open(batFile, 'r')) return print('找不到文件' + batFile);
+
+	for line in io.lines(batFile) 
+	{
+		if(string.find(line, "\%VBoxManage\%"))
+		{
+			execCmd = string.replace(line, "\%VBoxManage\%", vboxManageExe);
+			if(command == 'snapshot')
+			{	
+				var snapshotName = time(time(),"%Y%m%d");
+			
+				execCmd = string.replace(execCmd, "\%snapshotName\%", '"' + tostring(snapshotName) + '"');					
+			}
+		}
+		else 
+		{
+			execCmd = line;	
+		}
+		result = (execute(execCmd) == 0);	
+	}
+	
+	return result;
+ }
+ 
+ function setButtonStatus()
+ {
+ 	var startButton    = wbLayout.getEle("start");
+ 	var accessButton   = wbLayout.getEle("access");
+ 	var stopButton     = wbLayout.getEle("stop");
+ 	var snapshotButton = wbLayout.getEle("snapshot");
+
+ 	if(isRunning)
+ 	{
+		startButton.setAttribute("disabled", "disabled");
+		accessButton.setAttribute("disabled", null);
+		stopButton.setAttribute("disabled", null);	
+	}
+	else
+	{
+		startButton.setAttribute("disabled", null);
+		accessButton.setAttribute("disabled", "disabled");
+		stopButton.setAttribute("disabled", "disabled");	
+	}		
+ }
+ 
+ 
+ function exit()
+ {
+ 	winform.close();
+ }
+ 
+ function setVboxManage()
+ {
+ 	isInstall = exec('getVboxManage');
+ 	if(isInstall)
+ 	{
+ 		vboxManageExe = string.load(TMP_FILE);
+ 		vboxManageExe = string.sub(vboxManageExe, string.find(vboxManageExe,"\\") - 2);
+ 		vboxManageExe = string.replace(vboxManageExe, '\n', '');
+ 		vboxManageExe = string.replace(vboxManageExe, "\\", "\\\\");
+ 		vboxManageExe += '\VBoxManage.exe';
+ 		if(!exec('testVboxManage')) print('请设置VBoxMange.exe路径……')
+ 	}
+ 	else
+ 	{
+ 		win.msgbox（'你尚未安装virtualBox，请先安装……'）;
+ 		exit();
+ 	}	
+ }
+ 
+ function init()
+ {
+ 	setVboxManage();
+ 	isExist = exec('isExist');
+ 	if(isExist) 
+	{
+		isRunning = exec('isRunning');
+		
+		if(isRunning) 
+		{
+			print('禅道虚拟机正在运行中……');
+			print('请点击“访问”按钮访问禅道。');
+		}
+		else 
+		{
+			print('禅道虚拟机未启动……');
+		}
+	}
+	else 
+	{
+		print('禅道虚拟机未安装……');
+		print('请点击”启动“按钮进行安装。');
+	}
+	setButtonStatus();	
+ }
+ init();
+ 
+ function start()
+ {	
+ 	isExist = exec('isExist');
+	if(isExist) 
+	{
+		print('正在启动禅道虚拟机……');
+		isRunning = exec('start');
+		setButtonStatus();
+		if(isRunning) return print('禅道虚拟机正在运行……\n请点击”访问“按钮访问禅道。');
+		print('禅道虚拟机启动失败……');
+	}
+	else 
+	{
+		print('现在开始安装禅道虚拟机……');
+		exec('uninstall');
+		isExist = exec('install');
+		setButtonStatus();
+		if(!isExist) return print('安装禅道虚拟机失败……');
+		isRunning = exec('start');
+	}	
+	if(isRunning) return print('禅道虚拟机正在运行……\n请点击“访问”按钮访问禅道。');
+	print('禅道虚拟机启动失败……');
+ }
+ 
+ function access()
+ {	
+ 	exec('access');
+ }
+ 
+ function stop()
+ {	
+ 	print('正在停止禅道虚拟机……');
+ 	isRunning = !exec('stop');
+ 	setButtonStatus();
+ 	if(isRunning) return print('停止禅道虚拟机失败。');
+ 	print('禅道虚拟机已经停止。')
+ }
+ 
+ function snapshot()
+ {
+ 	print('正在备份禅道虚拟机……');
+ 	if(exec('snapshot')) return print('备份成功！');
+ 	print('备份失败');
+ }
+ 
+winform.show();
+win.loopMessage();
