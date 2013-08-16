@@ -1,81 +1,15 @@
 import win.ui;
 import process;
 /*DSG{{*/
-var winform = ..win.form( bottom=300;parent=...;right=500;text="AAuto Form" )
+var winform = ..win.form( right=500;title=false;bottom=300;parent=...;text="禅道虚拟机控制面板";border="none";mode="popup" )
 winform.add(  )
 /*}}*/
 
-winform.wndproc = function(hwnd,message,wParam,lParam){
-	select( message ) { 
-		case 0x205/*_WM_RBUTTONUP*/{
-			//鼠标右键弹起,下面获取坐标
-			var x,y = win.getMessagePos(lParam);
-			
-		}
-		else{
-			
-		}
-	}
-	//无返回值则继续调用默认回调函数
-}
+winform.modifyStyleEx(, 0x80000/*_WS_EX_LAYERED*/);
 
- 
 import web.layout;
- 
 var wbLayout = web.layout(winform);
-
-wbLayout.html = /**
-<body>
-  <div id='buttons'>
-    <button type='button' name='start'>启动</button>
-    <button type='button' name='access'>访问</button>
-    <button type='button' name='stop'>停止</button>
-    <button type='button' name='snapshot'>备份</button>
-    <button type='button' name='exit'>退出</button>
-  </div>
-  <div>
-    <textarea id='output'>欢迎使用禅道虚拟机控制面板</textarea>
-  </div>
-</body>
-**/
- 
-wbLayout.css = /**
-button 
-{
-  width:50px;
-  margin:15px 20px 15px 0px;
-  display: inline-block;
-  padding: 4px 12px;
-  font-size: 14px;
-  line-height: 20px;
-  color: #333;
-  text-align: center;
-  text-shadow: 0 1px 1px rgba(255,255,255,0.75);
-  vertical-align: middle;
-  cursor: pointer;
-  background-color: #f5f5f5;
-  background-image: -moz-linear-gradient(top,#fff,#e6e6e6);
-  background-image: -webkit-gradient(linear,0 0,0 100%,from(#fff),to(#e6e6e6));
-  background-image: -webkit-linear-gradient(top,#fff,#e6e6e6);
-  background-image: -o-linear-gradient(top,#fff,#e6e6e6);
-  background-image: linear-gradient(to bottom,#fff,#e6e6e6);
-  background-repeat: repeat-x;
-  border: 1px solid #ccc;
-  border-color: #e6e6e6 #e6e6e6 #bfbfbf;
-  border-color: rgba(0,0,0,0.1) rgba(0,0,0,0.1) rgba(0,0,0,0.25);
-  border-bottom-color: #b3b3b3;
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
-  border-radius: 4px;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffff',endColorstr='#ffe6e6e6',GradientType=0);
-  filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
-  -webkit-box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05);
-  -moz-box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2),0 1px 2px rgba(0,0,0,0.05);
-}
-#buttons button:last-child {margin-right:0px}
-textarea {width:100%;height:220px}
-**/
+wbLayout.go("/layout/index.html");
 
 wbLayout.onButtonClick = function (ltTarget,ltEle,reason,behaviorParams)
 {
@@ -113,6 +47,14 @@ function print(content)
 	wbLayout.getEle("output").value += '\n' + tostring(content);
 }
 
+x = winform.getRect(true)
+x = winform.getClientRect()
+print(x.top)
+print(x.bottom)
+print(x.left)
+print(x.right)
+
+
  function exec(command)
  {
  	var batFile = '';
@@ -141,7 +83,7 @@ function print(content)
 			execCmd = string.replace(line, "\%VBoxManage\%", vboxManageExe);
 			if(command == 'snapshot')
 			{	
-				var snapshotName = time(time(),"%Y%m%d");
+				snapshotName = time(time(),"%Y%m%d");
 			
 				execCmd = string.replace(execCmd, "\%snapshotName\%", '"' + tostring(snapshotName) + '"');					
 			}
@@ -270,9 +212,10 @@ function print(content)
  function snapshot()
  {
  	print('正在备份禅道虚拟机……');
- 	if(exec('snapshot')) return print('备份成功！');
+ 	if(exec('snapshot')) return print('备份成功！备份为"' + tostring(snapshotName) + '"');
  	print('备份失败');
  }
  
 winform.show();
 win.loopMessage();
+return winform;
