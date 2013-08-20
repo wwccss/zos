@@ -1,0 +1,6 @@
+{
+    "httpPort":85,
+    "memory":512,
+    "cpus":2,
+    "sshPort":22
+}

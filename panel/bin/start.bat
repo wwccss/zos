@@ -1,1 +1,1 @@
-%VBoxManage% startvm zentaomos
+start ../bin/trayrun.exe %VBoxManage% startvm zentaomos

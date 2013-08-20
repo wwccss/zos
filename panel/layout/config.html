@@ -1,0 +1,48 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf8" />
+<head>
+<link rel="stylesheet" href="css/common.css" />
+<link rel="stylesheet" href="css/config.css" />
+</head>
+
+<body>
+  <div>
+    <fieldset>
+      <legend>内存/CPU个数</legend>
+      <table>
+        <tr>
+          <td align='right'>内存（M）</td>
+          <td><input id='memory' type='text' value='512'></td>
+        </tr>
+        <tr>
+          <td align='right'>CPU（个）</td>
+          <td><input id='cpus' type='text' value='2'></td>
+        </tr>
+      </table>
+    </fieldset>
+
+    <fieldset>
+      <legend>端口转发</legend>
+      <table>
+        <tr>
+          <td>名称</td>
+          <td>主机端口</td>
+          <td>虚拟机端口</td>
+        </tr>
+        <tr>
+          <td>http</td>
+          <td><input id='httpPort' type='text'></td>
+          <td><input type='text' value='80' disabled></td>
+        </tr>
+        <tr>
+          <td>ssh</td>
+          <td><input id='sshPort' type='text' value='22'></td>
+          <td><input type='text' value='22' disabled></td>
+        </tr>
+      </table>
+    </fieldset>
+    <div align='center'><button type='button' name='save'>保存</button></div>
+  </div>
+</body>
+</html>

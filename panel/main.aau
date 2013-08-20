@@ -1,16 +1,64 @@
 import win.ui;
+import win.ui.menu;
 import process;
-/*DSG{{*/
-var winform = ..win.form( right=500;title=false;bottom=300;parent=...;text="禅道虚拟机控制面板";border="none";mode="popup" )
-winform.add(  )
-/*}}*/
-
-winform.modifyStyleEx(, 0x80000/*_WS_EX_LAYERED*/);
-
+import win.util.tray;
+import com.picture;
 import web.layout;
+import web.json;
+import process;
+import process.popen;
+
+var WIN_WIDTH  = 500;
+var WIN_HEIGHT = 300;
+var winform  = ..win.form( right=WIN_WIDTH;bottom=WIN_HEIGHT;parent=...;max=false;border="thin";text="禅道虚拟机控制面板";topmost=1;mode="popup" )
+deskRect   = winform.getRect();
+clientRect = winform.getClientRect();
+deskWidth  = deskRect.left + deskRect.right;
+deskHeight = deskRect.top  + deskRect.bottom;
+winform.setPos(deskWidth - WIN_WIDTH - 8, deskHeight - WIN_HEIGHT - 35);
+
+tray         = win.util.tray(winform);
+tray.message = 0x400+9981/*_WM_TRAYMESSAGE*/
+tray.tip     = "禅道虚拟机控制面板1.0"
+winform.popmenu = win.ui.popmenu(winform);
+winform.popmenu.add('&退出', function(id){ exit() })
+
+winform.wndproc = function(hwnd,message,wParam,lParam)
+{
+	select(message) 
+	{
+		case( 0x400+9981/*_WM_TRAYMESSAGE*/ ) 
+		{ 
+			if(lParam = 0x203/*_WM_LBUTTONDBLCLK*/)
+			{
+				winform.show(); 
+			}
+		
+	    	if( lParam = 0x205/*_WM_RBUTTONUP*/ )
+	    	{
+	    		import mouse;
+	    		x,y = mouse.getPos();	    		
+	    		win.setForeground(winform.hwnd)
+	    		winform.popmenu.popup( x,y,true )
+	    	}
+		} 
+		case( 0x112/*_WM_SYSCOMMAND*/ ) 
+		{ 		
+			if( wParam == 0xF020/*_SC_MINIMIZE*/ )
+			{		
+				winform.show(false); 
+				tray.pop("最小化到托盘了。。。", "提示！");
+  			}
+  			if( wParam == 0xF060/*_SC_CLOSE*/) 
+  			{
+  				exit();
+  			}
+		}
+	}	
+}
+
 var wbLayout = web.layout(winform);
 wbLayout.go("/layout/index.html");
-
 wbLayout.onButtonClick = function (ltTarget,ltEle,reason,behaviorParams)
 {
 	if(ltEle.name == 'start')    start();
@@ -20,8 +68,9 @@ wbLayout.onButtonClick = function (ltTarget,ltEle,reason,behaviorParams)
 	if(ltEle.name == 'exit')     exit();
 }
 
-var TMP_FILE = 'tmp';
-var OK_FILE  = 'ok';
+var TMP_FILE    = 'tmp';
+var OK_FILE     = 'ok';
+var CONFIG_FILE = 'config';
 
 var isInstall  = false;
 var vboxManageExe = "";
@@ -46,16 +95,14 @@ function print(content)
 {
 	wbLayout.getEle("output").value += '\n' + tostring(content);
 }
-
-x = winform.getRect(true)
-x = winform.getClientRect()
-print(x.top)
-print(x.bottom)
-print(x.left)
-print(x.right)
-
-
- function exec(command)
+  
+ function exit()
+ {
+ 	tray.delete();
+ 	winform.close();
+ }
+ 
+ function exec(command, config)
  {
  	var batFile = '';
  	var execCmd = '';
@@ -73,8 +120,13 @@ print(x.right)
  		case 'access'  		 { batFile = accessBat;}
  		case 'stop'    		 { batFile = stopBat;}
  		case 'snapshot'    	 { batFile = snapshotBat;}
+ 		else                 { return(execute(command) == 0);}
  	}
-	if(!io.open(batFile, 'r')) return print('找不到文件' + batFile);
+	if(!io.open(batFile, 'r')) 
+	{ 
+	    win.msgbox("找不到文件" + batFile, "错误提示");
+		exit();
+	}
 
 	for line in io.lines(batFile) 
 	{
@@ -86,6 +138,14 @@ print(x.right)
 				snapshotName = time(time(),"%Y%m%d");
 			
 				execCmd = string.replace(execCmd, "\%snapshotName\%", '"' + tostring(snapshotName) + '"');					
+			}
+			
+			if(command == 'install')
+			{
+				execCmd = string.replace(execCmd, "\%memory\%",   tostring(config.memory));
+				execCmd = string.replace(execCmd, "\%cpus\%",     tostring(config.cpus));
+				execCmd = string.replace(execCmd, "\%httpPort\%", tostring(config.httpPort));
+				execCmd = string.replace(execCmd, "\%sshPort\%",  tostring(config.sshPort));
 			}
 		}
 		else 
@@ -119,12 +179,6 @@ print(x.right)
 	}		
  }
  
- 
- function exit()
- {
- 	winform.close();
- }
- 
  function setVboxManage()
  {
  	isInstall = exec('getVboxManage');
@@ -139,7 +193,8 @@ print(x.right)
  	}
  	else
  	{
- 		win.msgbox（'你尚未安装virtualBox，请先安装……'）;
+ 		win.msgbox（'你尚未安装virtualBox，请先安装……', "提示"）;
+ 		exec('start https://www.virtualbox.org/wiki/Downloads');
  		exit();
  	}	
  }
@@ -171,6 +226,75 @@ print(x.right)
  }
  init();
  
+ configform = ..win.form( right=400;bottom=250;parent=...;max=false;border="thin";text="参数配置";topmost=1;mode="popup" )
+ config = {};
+ function getAvailablePort(connectType)
+ {
+ 	var defaultPort = connectType == 'http' and 80 or 22;
+ 	var netstat = process.popen("netstat","-an");
+	var strRet  = netstat.read(-1);
+	for ip,port in string.gmatch( strRet,"<TCP>|<UDP>\s+([\d\.]+)\:(\d+)")
+	{ 
+		if(port == defaultPort)	defaultPort++;
+	}
+	
+	return tostring(defaultPort);
+ }
+ 
+ function configAndInstall()
+ {
+	configLayout = web.layout(configform);
+	configLayout.go("/layout/config.html");	
+	configLayout.getEle('httpPort').value = getAvailablePort('http');
+	configLayout.getEle('sshPort').value = getAvailablePort('ssh');
+	
+	
+	configLayout.onButtonClick = function (ltTarget,ltEle,reason,behaviorParams)
+	{
+		if(ltEle.name == 'save') saveConfig();
+	}
+	configform.show();
+	
+	
+	function saveConfig()
+	{	
+		config.memory   = tonumber(configLayout.getEle('memory').value);  
+		config.cpus     = tonumber(configLayout.getEle('cpus').value);
+		config.httpPort = tonumber(configLayout.getEle('httpPort').value);
+		config.sshPort  = tonumber(configLayout.getEle('sshPort').value);
+		if(config.memory == null or config.memory < 128) 
+		{
+			configform.msgbox("内存值设置不合法！（memory>=128M）", "提示！");
+			return false;
+		}
+		if(config.cpus == null or config.cpus < 1 or config.cpus > 4) 
+		{
+			configform.msgbox("CPU个数设置不合法！（1<=cpus<=4）", "提示！");
+			return false;
+		}
+		if(config.httpPort == null or config.httpPort < 1 or config.httpPort > 65535)
+		{
+			configform.msgbox("主机http端口设置不合法！（1<=port<=65535）", "提示！");
+			return false;
+		}
+		if(config.sshPort == null or config.sshPort < 1 or config.sshPort > 65535) 
+		{
+			configform.msgbox("主机ssh端口设置不合法！（1<=port<=65535）", "提示！");
+			return false;
+		}
+		string.save(CONFIG_FILE, web.json.stringify(config,true));
+		configform.show(false);
+		print('现在开始安装禅道虚拟机……');
+		isExist = exec('install', config);
+		if(!isExist) return print('禅道虚拟机安装失败……');
+		print('现在开始启动禅道虚拟机……');
+		isRunning = exec('start');
+		setButtonStatus();
+		if(isRunning) return print('禅道虚拟机正在运行……\n请点击“访问”按钮访问禅道。');
+		print("禅道虚拟机启动失败……");
+	}
+ }
+ 
  function start()
  {	
  	isExist = exec('isExist');
@@ -184,20 +308,16 @@ print(x.right)
 	}
 	else 
 	{
-		print('现在开始安装禅道虚拟机……');
-		exec('uninstall');
-		isExist = exec('install');
-		setButtonStatus();
-		if(!isExist) return print('安装禅道虚拟机失败……');
-		isRunning = exec('start');
+		configAndInstall();	
 	}	
-	if(isRunning) return print('禅道虚拟机正在运行……\n请点击“访问”按钮访问禅道。');
-	print('禅道虚拟机启动失败……');
  }
  
  function access()
  {	
- 	exec('access');
+ 	var configJson = string.load(CONFIG_FILE);
+ 	var config = web.json.parse(configJson);
+ 	if(config == null) return win.msgbox("找不着文件：" + CONFIG_FILE, "提示！");
+ 	exec('start http://localhost:' + config.httpPort);
  }
  
  function stop()
@@ -218,4 +338,3 @@ print(x.right)
  
 winform.show();
 win.loopMessage();
-return winform;
