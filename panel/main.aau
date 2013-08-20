@@ -10,7 +10,7 @@ import process.popen;
 
 var WIN_WIDTH  = 500;
 var WIN_HEIGHT = 300;
-var winform  = ..win.form( right=WIN_WIDTH;bottom=WIN_HEIGHT;parent=...;max=false;border="thin";text="禅道虚拟机控制面板";topmost=1;mode="popup" )
+var winform  = ..win.form( right=WIN_WIDTH;bottom=WIN_HEIGHT;parent=...;max=false;border="thin";text="禅道管理系统控制面板";topmost=1;mode="popup" )
 deskRect   = winform.getRect();
 clientRect = winform.getClientRect();
 deskWidth  = deskRect.left + deskRect.right;
@@ -19,7 +19,7 @@ winform.setPos(deskWidth - WIN_WIDTH - 8, deskHeight - WIN_HEIGHT - 35);
 
 tray         = win.util.tray(winform);
 tray.message = 0x400+9981/*_WM_TRAYMESSAGE*/
-tray.tip     = "禅道虚拟机控制面板1.0"
+tray.tip     = "禅道管理系统控制面板1.0"
 winform.popmenu = win.ui.popmenu(winform);
 winform.popmenu.add('&退出', function(id){ exit() })
 
@@ -209,17 +209,17 @@ function print(content)
 		
 		if(isRunning) 
 		{
-			print('禅道虚拟机正在运行中……');
+			print('禅道管理系统正在运行中……');
 			print('请点击“访问”按钮访问禅道。');
 		}
 		else 
 		{
-			print('禅道虚拟机未启动……');
+			print('禅道管理系统未启动……');
 		}
 	}
 	else 
 	{
-		print('禅道虚拟机未安装……');
+		print('禅道管理系统未安装……');
 		print('请点击”启动“按钮进行安装。');
 	}
 	setButtonStatus();	
@@ -284,14 +284,14 @@ function print(content)
 		}
 		string.save(CONFIG_FILE, web.json.stringify(config,true));
 		configform.show(false);
-		print('现在开始安装禅道虚拟机……');
+		print('现在开始安装禅道管理系统……');
 		isExist = exec('install', config);
-		if(!isExist) return print('禅道虚拟机安装失败……');
-		print('现在开始启动禅道虚拟机……');
+		if(!isExist) return print('禅道管理系统安装失败……');
+		print('现在开始启动禅道管理系统……');
 		isRunning = exec('start');
 		setButtonStatus();
-		if(isRunning) return print('禅道虚拟机正在运行……\n请点击“访问”按钮访问禅道。');
-		print("禅道虚拟机启动失败……");
+		if(isRunning) return print('禅道管理系统正在运行……\n请点击“访问”按钮访问禅道。');
+		print("禅道管理系统启动失败……");
 	}
  }
  
@@ -300,11 +300,11 @@ function print(content)
  	isExist = exec('isExist');
 	if(isExist) 
 	{
-		print('正在启动禅道虚拟机……');
+		print('正在启动禅道管理系统……');
 		isRunning = exec('start');
 		setButtonStatus();
-		if(isRunning) return print('禅道虚拟机正在运行……\n请点击”访问“按钮访问禅道。');
-		print('禅道虚拟机启动失败……');
+		if(isRunning) return print('禅道管理系统正在运行……\n请点击”访问“按钮访问禅道。');
+		print('禅道管理系统启动失败……');
 	}
 	else 
 	{
@@ -322,16 +322,16 @@ function print(content)
  
  function stop()
  {	
- 	print('正在停止禅道虚拟机……');
+ 	print('正在停止禅道管理系统……');
  	isRunning = !exec('stop');
  	setButtonStatus();
- 	if(isRunning) return print('停止禅道虚拟机失败。');
- 	print('禅道虚拟机已经停止。')
+ 	if(isRunning) return print('停止禅道管理系统失败。');
+ 	print('禅道管理系统已经停止。')
  }
  
  function snapshot()
  {
- 	print('正在备份禅道虚拟机……');
+ 	print('正在备份禅道管理系统……');
  	if(exec('snapshot')) return print('备份成功！备份为"' + tostring(snapshotName) + '"');
  	print('备份失败');
  }
