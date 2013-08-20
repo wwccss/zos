@@ -19,9 +19,9 @@ winform.setPos(deskWidth - WIN_WIDTH - 8, deskHeight - WIN_HEIGHT - 35);
 
 tray         = win.util.tray(winform);
 tray.message = 0x400+9981/*_WM_TRAYMESSAGE*/
-tray.tip     = "禅道管理系统控制面板1.0"
+tray.tip     = "禅道管理系统控制面板1.0";
 winform.popmenu = win.ui.popmenu(winform);
-winform.popmenu.add('&退出', function(id){ exit() })
+winform.popmenu.add('&退出', function(id){ exit() });
 
 winform.wndproc = function(hwnd,message,wParam,lParam)
 {
@@ -68,28 +68,28 @@ wbLayout.onButtonClick = function (ltTarget,ltEle,reason,behaviorParams)
 	if(ltEle.name == 'exit')     exit();
 }
 
-var TMP_FILE    = 'tmp';
-var OK_FILE     = 'ok';
-var CONFIG_FILE = 'config';
+var TMP_FILE    = ".\tmp\tmp";
+var OK_FILE     = ".\tmp\ok";
+var CONFIG_FILE = ".\tmp\config";
 
 var isInstall  = false;
 var vboxManageExe = "";
 
-var getVboxManage  = "..\bin\getVboxManage.bat";
-var testVboxManage = "..\bin\testVboxManage.bat";
+var getVboxManage  = ".\bin\getVboxManage.bat";
+var testVboxManage = ".\bin\testVboxManage.bat";
 
 var isExist    = false;
-var isExistBat = "..\bin\isExist.bat";
+var isExistBat = ".\bin\isExist.bat";
 
 var isRunning    = false;
-var isRunningBat = "..\bin\isRunning.bat";
+var isRunningBat = ".\bin\isRunning.bat";
 
-var startBat     = "..\bin\start.bat";
-var installBat   = "..\bin\install.bat";
-var uninstallBat = "..\bin\uninstall.bat";
-var accessBat    = "..\bin\access.bat";
-var stopBat      = "..\bin\stop.bat";
-var snapshotBat  = "..\bin\snapshot.bat";
+var startBat     = ".\bin\start.bat";
+var installBat   = ".\bin\install.bat";
+var uninstallBat = ".\bin\uninstall.bat";
+var accessBat    = ".\bin\access.bat";
+var stopBat      = ".\bin\stop.bat";
+var snapshotBat  = ".\bin\snapshot.bat";
 
 function print(content)
 {
@@ -100,6 +100,7 @@ function print(content)
  {
  	tray.delete();
  	winform.close();
+ 	win.quitMessage();
  }
  
  function exec(command, config)
@@ -122,6 +123,7 @@ function print(content)
  		case 'snapshot'    	 { batFile = snapshotBat;}
  		else                 { return(execute(command) == 0);}
  	}
+ 	
 	if(!io.open(batFile, 'r')) 
 	{ 
 	    win.msgbox("找不到文件" + batFile, "错误提示");

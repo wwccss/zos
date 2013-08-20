@@ -1,5 +1,5 @@
 {
-    "httpPort":85,
+    "httpPort":80,
     "memory":512,
     "cpus":2,
     "sshPort":22
