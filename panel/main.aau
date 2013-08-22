@@ -226,7 +226,6 @@ function print(content)
  		vboxManageExe = string.replace(vboxManageExe, '\n', '');
  		vboxManageExe = string.replace(vboxManageExe, "\\", "\\\\");
  		vboxManageExe += "VBoxManage.exe";
- 		vboxManageExe = "E:\\installedSoft\\vBox\\VBoxManage.exe";
  		return true;
  	}
  	else
@@ -260,7 +259,7 @@ function print(content)
  	}
  	else 
  	{
- 	 	isRunning =false;
+ 	 	isRunning = false;
  	}
  }
  
