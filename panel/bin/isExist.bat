@@ -1,1 +1,1 @@
-%VBoxManage% list vms | findstr \"zentaomos\"
+%VBoxManage% list vms | findstr \"zentaomos\" 

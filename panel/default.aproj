@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="gb2312"?>
-<project ver="0.60" name="禅道管理系统控制面板" libEmbed="true" icon="layout\images\zentao.ico" CompanyName="青岛易软天创网络科技有限公司" FileDescription="附加说明......" LegalCopyright="Copyright (C) 陈聪智 2013" ProductName="禅道管理系统控制面板" InternalName="禅道管理系统控制面板" FileVersion="1.0.0.36" ProductVersion="1.0.0.36" publishDir="D:\AAuto\project\virtualPanel" ui="win" output="start.exe">
+<project ver="0.60" name="禅道管理系统控制面板" libEmbed="true" icon="layout\images\zentao.ico" CompanyName="青岛易软天创网络科技有限公司" FileDescription="附加说明......" LegalCopyright="Copyright (C) 陈聪智 2013" ProductName="禅道管理系统控制面板" InternalName="禅道管理系统控制面板" FileVersion="1.0.0.79" ProductVersion="1.0.0.79" publishDir="D:\AAuto\project\virtualPanel" ui="win" output="zentaomos.exe">
 	<file name="main.aau" path="main.aau"/>
 	<folder name="资源文件" path="res" embed="true"/>
 </project>

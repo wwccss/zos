@@ -10,18 +10,21 @@ import process.popen;
 
 var WIN_WIDTH  = 500;
 var WIN_HEIGHT = 300;
-var winform  = ..win.form( right=WIN_WIDTH;bottom=WIN_HEIGHT;parent=...;max=false;border="thin";text="禅道管理系统控制面板";topmost=1;mode="popup" )
+var winform  = ..win.form( right=WIN_WIDTH;bottom=WIN_HEIGHT;parent=...;max=false;border="thin";text="禅道管理系统控制面板1.0";topmost=1;mode="popup" )
 deskRect   = winform.getRect();
 clientRect = winform.getClientRect();
 deskWidth  = deskRect.left + deskRect.right;
 deskHeight = deskRect.top  + deskRect.bottom;
 winform.setPos(deskWidth - WIN_WIDTH - 8, deskHeight - WIN_HEIGHT - 35);
 
+langFile = loadcode("./lang/zh-cn.aau");
+langFile("./lang/zh-cn");
+
 tray         = win.util.tray(winform);
 tray.message = 0x400+9981/*_WM_TRAYMESSAGE*/
-tray.tip     = "禅道管理系统控制面板1.0";
+tray.tip     = lang.panelName;
 winform.popmenu = win.ui.popmenu(winform);
-winform.popmenu.add('&退出', function(id){ exit() });
+winform.popmenu.add(lang.popmenu.exit, function(id){ exit() });
 
 winform.wndproc = function(hwnd,message,wParam,lParam)
 {
@@ -47,7 +50,7 @@ winform.wndproc = function(hwnd,message,wParam,lParam)
 			if( wParam == 0xF020/*_SC_MINIMIZE*/ )
 			{		
 				winform.show(false); 
-				tray.pop("最小化到托盘了。。。", "提示！");
+				tray.pop(lang.prompt.minToTray, lang.prompt.common);
   			}
   			if( wParam == 0xF060/*_SC_CLOSE*/) 
   			{
@@ -68,9 +71,18 @@ wbLayout.onButtonClick = function (ltTarget,ltEle,reason,behaviorParams)
 	if(ltEle.name == 'exit')     exit();
 }
 
+now = time();
+now.format="%Y-%m-%d";
+today = tostring(now);
+
+now.format   = "%Y-%m-%d %H:%M";
+snapshotName = tostring(now);
+
 var TMP_FILE    = ".\tmp\tmp";
+var TMP_BAT     = ".\tmp\tmp.bat";
 var OK_FILE     = ".\tmp\ok";
 var CONFIG_FILE = ".\tmp\config";
+var LOG_FILE    = ".\log\" + today + '.txt';
 
 var isInstall  = false;
 var vboxManageExe = "";
@@ -90,12 +102,22 @@ var uninstallBat = ".\bin\uninstall.bat";
 var accessBat    = ".\bin\access.bat";
 var stopBat      = ".\bin\stop.bat";
 var snapshotBat  = ".\bin\snapshot.bat";
+var getHttpPort  = ".\bin\getHttpPort.bat";
+
+function log(content)
+{
+	now = time();
+	now.format = "%H:%M:%S";
+	content = tostring(now) + ' ' + content + '\n';
+	string.save(LOG_FILE, content,true);
+}
 
 function print(content)
 {
+	log(content);
 	wbLayout.getEle("output").value += '\n' + tostring(content);
 }
-  
+
  function exit()
  {
  	tray.delete();
@@ -107,7 +129,6 @@ function print(content)
  {
  	var batFile = '';
  	var execCmd = '';
- 	var result = false;
  	
  	select(command)
  	{
@@ -121,43 +142,55 @@ function print(content)
  		case 'access'  		 { batFile = accessBat;}
  		case 'stop'    		 { batFile = stopBat;}
  		case 'snapshot'    	 { batFile = snapshotBat;}
- 		else                 { return(execute(command) == 0);}
+ 		case 'getHttpPort'   { batFile = getHttpPort;}
+ 		else                 { execCmd = "cmd /C " + command + ' > ' + TMP_FILE + ' 2>&1 & echo ok > ' + OK_FILE;}
  	}
  	
-	if(!io.open(batFile, 'r')) 
-	{ 
-	    win.msgbox("找不到文件" + batFile, "错误提示");
+	if(execCmd != '') 
+	{
+		log(execCmd);
+		io.remove(OK_FILE);
+		string.save(TMP_BAT, execCmd);
+		process.execute('spawn.vbs');
+		while(!io.exist(OK_FILE)){ sleep(100);}
+		io.remove(OK_FILE);			
+		return;
+	}
+		 
+	if(!io.open(batFile, 'r'))
+	{
+	    win.msgbox(lang.prompt.fileNotFound + batFile, lang.prompt.common);
 		exit();
 	}
-
+	
 	for line in io.lines(batFile) 
 	{
 		if(string.find(line, "\%VBoxManage\%"))
 		{
-			execCmd = string.replace(line, "\%VBoxManage\%", vboxManageExe);
+			line = string.replace(line, "\%VBoxManage\%", vboxManageExe);
 			if(command == 'snapshot')
 			{	
-				snapshotName = time(time(),"%Y%m%d");
-			
-				execCmd = string.replace(execCmd, "\%snapshotName\%", '"' + tostring(snapshotName) + '"');					
+				line = string.replace(line, "\%snapshotName\%", '"' + tostring(snapshotName) + '"');					
 			}
-			
+		
 			if(command == 'install')
 			{
-				execCmd = string.replace(execCmd, "\%memory\%",   tostring(config.memory));
-				execCmd = string.replace(execCmd, "\%cpus\%",     tostring(config.cpus));
-				execCmd = string.replace(execCmd, "\%httpPort\%", tostring(config.httpPort));
-				execCmd = string.replace(execCmd, "\%sshPort\%",  tostring(config.sshPort));
+				line = string.replace(line, "\%memory\%",   tostring(config.memory));
+				line = string.replace(line, "\%cpus\%",     tostring(config.cpus));
+				line = string.replace(line, "\%httpPort\%", tostring(config.httpPort));
+				line = string.replace(line, "\%sshPort\%",  tostring(config.sshPort));
 			}
 		}
-		else 
-		{
-			execCmd = line;	
-		}
-		result = (execute(execCmd) == 0);	
+			
+
+		execCmd = "cmd /C " + line + ' > ' + TMP_FILE + ' 2>&1 & echo ok > ' + OK_FILE;
+		log(execCmd);
+		io.remove(OK_FILE);
+		string.save(TMP_BAT, execCmd);
+		process.execute('spawn.vbs');
+		while(!io.exist(OK_FILE)){ sleep(100);}
+		io.remove(OK_FILE);			
 	}
-	
-	return result;
  }
  
  function setButtonStatus()
@@ -183,50 +216,80 @@ function print(content)
  
  function setVboxManage()
  {
- 	isInstall = exec('getVboxManage');
+ 	exec('getVboxManage');
+ 	if(string.find(string.load(TMP_FILE), 'InstallDir')) isInstall = true;
+
  	if(isInstall)
  	{
  		vboxManageExe = string.load(TMP_FILE);
  		vboxManageExe = string.sub(vboxManageExe, string.find(vboxManageExe,"\\") - 2);
  		vboxManageExe = string.replace(vboxManageExe, '\n', '');
  		vboxManageExe = string.replace(vboxManageExe, "\\", "\\\\");
- 		vboxManageExe += '\VBoxManage.exe';
- 		if(!exec('testVboxManage')) print('请设置VBoxMange.exe路径……')
+ 		vboxManageExe += "VBoxManage.exe";
+ 		vboxManageExe = "E:\\installedSoft\\vBox\\VBoxManage.exe";
+ 		return true;
  	}
  	else
  	{
- 		win.msgbox（'你尚未安装virtualBox，请先安装……', "提示"）;
+ 		win.msgbox（lang.prompt.vbNotFound, lang.prompt.common）;
  		exec('start https://www.virtualbox.org/wiki/Downloads');
- 		exit();
+ 		return false;
  	}	
+ }
+ 
+ function setIsExist()
+ {
+  	exec('isExist');
+
+ 	if(string.find(string.load(TMP_FILE), 'zentaomos')) 
+ 	{
+ 		isExist = true;
+ 	}
+ 	else 
+ 	{
+ 		isExist = false;
+ 	}
+ }
+ 
+ function setIsRunning()
+ {
+ 	exec('isRunning');
+ 	if(string.find(string.load(TMP_FILE), 'zentaomos')) 
+ 	{
+ 		isRunning = true;
+ 	}
+ 	else 
+ 	{
+ 	 	isRunning =false;
+ 	}
  }
  
  function init()
  {
- 	setVboxManage();
- 	isExist = exec('isExist');
+ 	if(!setVboxManage()) return false;
+ 	setIsExist();
  	if(isExist) 
 	{
-		isRunning = exec('isRunning');
-		
+		setIsRunning();
 		if(isRunning) 
 		{
-			print('禅道管理系统正在运行中……');
-			print('请点击“访问”按钮访问禅道。');
+			print(lang.prompt.mosIsRunning);
+			print(lang.prompt.clickToAccess);
 		}
 		else 
 		{
-			print('禅道管理系统未启动……');
+			print(lang.prompt.mosNotStarted);
 		}
 	}
 	else 
 	{
-		print('禅道管理系统未安装……');
-		print('请点击”启动“按钮进行安装。');
+		print(lang.prompt.mosNotInstalled);
+		print(lang.prompt.clickToInstall);
 	}
-	setButtonStatus();	
+	setButtonStatus();
+	return true;	
  }
- init();
+ if(!init()) exit();
  
  configform = ..win.form( right=400;bottom=250;parent=...;max=false;border="thin";text="参数配置";topmost=1;mode="popup" )
  config = {};
@@ -266,47 +329,50 @@ function print(content)
 		config.sshPort  = tonumber(configLayout.getEle('sshPort').value);
 		if(config.memory == null or config.memory < 128) 
 		{
-			configform.msgbox("内存值设置不合法！（memory>=128M）", "提示！");
+			configform.msgbox(lang.prompt.wrongMemory, lang.prompt.common);
 			return false;
 		}
 		if(config.cpus == null or config.cpus < 1 or config.cpus > 4) 
 		{
-			configform.msgbox("CPU个数设置不合法！（1<=cpus<=4）", "提示！");
+			configform.msgbox(lang.prompt.wrongCpus, lang.prompt.common);
 			return false;
 		}
 		if(config.httpPort == null or config.httpPort < 1 or config.httpPort > 65535)
 		{
-			configform.msgbox("主机http端口设置不合法！（1<=port<=65535）", "提示！");
+			configform.msgbox(lang.prompt.wrongHttpPort, lang.prompt.common);
 			return false;
 		}
 		if(config.sshPort == null or config.sshPort < 1 or config.sshPort > 65535) 
 		{
-			configform.msgbox("主机ssh端口设置不合法！（1<=port<=65535）", "提示！");
+			configform.msgbox(lang.prompt.wrongSshPort, lang.prompt.common);
 			return false;
 		}
 		string.save(CONFIG_FILE, web.json.stringify(config,true));
 		configform.show(false);
-		print('现在开始安装禅道管理系统……');
-		isExist = exec('install', config);
-		if(!isExist) return print('禅道管理系统安装失败……');
-		print('现在开始启动禅道管理系统……');
-		isRunning = exec('start');
+		print(lang.prompt.mosIsInstalling);
+		exec('install', config);
+		setIsExist();
+		if(!isExist) { print(lang.prompt.mosInstallFailed); return;}
+		print(lang.prompt.mosIsStarting);
+		exec('start');
+		setIsRunning();
 		setButtonStatus();
-		if(isRunning) return print('禅道管理系统正在运行……\n请点击“访问”按钮访问禅道。');
-		print("禅道管理系统启动失败……");
+		if(isRunning) return print(lang.prompt.mosIsRunning + '\n' + lang.prompt.clickToAccess);
+		print(lang.prompt.mosStartFailed);
 	}
  }
  
  function start()
  {	
- 	isExist = exec('isExist');
+ 	setIsExist();
 	if(isExist) 
 	{
-		print('正在启动禅道管理系统……');
-		isRunning = exec('start');
+		print(lang.prompt.mosIsStarting);
+		exec('start');
+		setIsRunning();
 		setButtonStatus();
-		if(isRunning) return print('禅道管理系统正在运行……\n请点击”访问“按钮访问禅道。');
-		print('禅道管理系统启动失败……');
+		if(isRunning) return print(lang.prompt.mosIsRunning + '\n' + lang.prompt.clickToAccess);
+		print(lang.prompt.mosStartFailed);
 	}
 	else 
 	{
@@ -316,26 +382,29 @@ function print(content)
  
  function access()
  {	
- 	var configJson = string.load(CONFIG_FILE);
- 	var config = web.json.parse(configJson);
- 	if(config == null) return win.msgbox("找不着文件：" + CONFIG_FILE, "提示！");
- 	exec('start http://localhost:' + config.httpPort);
+ 	exec('getHttpPort');
+ 	var httpPort = string.load(TMP_FILE);
+ 	var start = string.find(httpPort, "host port");
+ 	httpPort = string.sub(httpPort,string.find(httpPort, "\d+", start));
+ 	exec('start http://localhost:' + httpPort);
  }
  
  function stop()
  {	
- 	print('正在停止禅道管理系统……');
- 	isRunning = !exec('stop');
+ 	print(lang.prompt.mosIsStopping);
+ 	exec('stop');
+ 	setIsRunning();
  	setButtonStatus();
- 	if(isRunning) return print('停止禅道管理系统失败。');
- 	print('禅道管理系统已经停止。')
+ 	if(isRunning) return print(lang.prompt.mosStopFailed);
+ 	print(lang.prompt.mosStopped)
  }
  
  function snapshot()
  {
- 	print('正在备份禅道管理系统……');
- 	if(exec('snapshot')) return print('备份成功！备份为"' + tostring(snapshotName) + '"');
- 	print('备份失败');
+ 	print(lang.prompt.mosIsSnapshoting);
+ 	exec('snapshot') 
+ 	if(#string.load(TMP_FILE)) return print(lang.prompt.mosSnapshotted + '"' + tostring(snapshotName) + '"');
+ 	print(lang.prompt.mosSnapshotFailed);
  }
  
 winform.show();
