@@ -1,3 +1,4 @@
+sudo umount /dev/sdg1
 sudo umount /dev/sdf1
 sudo mount /dev/sdf1 /mnt/lfs
 sudo mkdir /mnt/lfs/sources/

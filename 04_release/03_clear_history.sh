@@ -19,3 +19,4 @@ sudo rm -frv /tmp/minify/sources
 sudo rm -frv /tmp/minify/tools
 
 sudo rm -frv /tmp/minify/srv/auth/users
+sudo touch -vv /tmp/minify/srv/auth/users
