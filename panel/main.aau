@@ -7,6 +7,7 @@ import web.layout;
 import web.json;
 import process;
 import process.popen;
+import win.reg;
 
 var WIN_WIDTH  = 500;
 var WIN_HEIGHT = 300;
@@ -87,7 +88,6 @@ var LOG_FILE    = ".\log\" + today + '.txt';
 var isInstall  = false;
 var vboxManageExe = "";
 
-var getVboxManage  = ".\bin\getVboxManage.bat";
 var testVboxManage = ".\bin\testVboxManage.bat";
 
 var isExist    = false;
@@ -132,7 +132,6 @@ function print(content)
  	
  	select(command)
  	{
- 	    case 'getVboxManage' { batFile = getVboxManage;}
  	    case 'testVboxManage'{ batFile = testVboxManage;}
  		case 'isExist'  	 { batFile = isExistBat;}
  		case 'isRunning'	 { batFile = isRunningBat;}
@@ -216,15 +215,13 @@ function print(content)
  
  function setVboxManage()
  {
- 	exec('getVboxManage');
- 	if(string.find(string.load(TMP_FILE), 'InstallDir')) isInstall = true;
+ 	vboxManageExe = win.regWow64("HKEY_LOCAL_MACHINE\SOFTWARE\Oracle\VirtualBox", true).queryValue("InstallDir");
+
+ 	if(vboxManageExe) isInstall = true;
 
  	if(isInstall)
  	{
- 		vboxManageExe = string.load(TMP_FILE);
- 		vboxManageExe = string.sub(vboxManageExe, string.find(vboxManageExe,"\\") - 2);
- 		vboxManageExe = string.replace(vboxManageExe, '\n', '');
- 		vboxManageExe = string.replace(vboxManageExe, "\\", "\\\\");
+ 	    vboxManageExe = string.replace(vboxManageExe, "\\", "\\\\");
  		vboxManageExe += "VBoxManage.exe";
  		return true;
  	}
