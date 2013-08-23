@@ -1,1 +1,1 @@
-CreateObject("Wscript.Shell").Run "./tmp/tmp.bat",0,true
+CreateObject("Wscript.Shell").Run "./tmp/tmp.bat",0,false
