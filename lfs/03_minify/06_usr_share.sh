@@ -19,4 +19,4 @@ sudo cp -frv /usr/share.bak/vim/vim73/ftplugin /usr/share/vim/vim73/
 sudo rm -frv /usr/share/vim/vim73/*example*/
 sudo rm -frv /usr/share/vim/vim73/bugreport*
 
-sudo cp -frv /usr/share.bak/vim/vim73/syntax/{css,html,javascript,php,sh,sqloracle,syncolor,synload,syntax,nosyntax,vb}.vim /usr/share/vim/vim73/syntax/
+sudo cp -frv /usr/share.bak/vim/vim73/syntax/{css,html,javascript,php,sh,sql,sqloracle,syncolor,synload,syntax,nosyntax,vb}.vim /usr/share/vim/vim73/syntax/
