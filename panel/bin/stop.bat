@@ -1,1 +1,1 @@
-%VBoxManage% controlvm zentaomos poweroff
+%VBoxManage% controlvm zentaomos acpipowerbutton

@@ -142,7 +142,7 @@ function print(content)
  		case 'stop'    		 { batFile = stopBat;}
  		case 'snapshot'    	 { batFile = snapshotBat;}
  		case 'getHttpPort'   { batFile = getHttpPort;}
- 		else                 { execCmd = "cmd /C " + command + ' > ' + TMP_FILE + ' 2>&1 & echo ok > ' + OK_FILE;}
+ 		else                 { execCmd = command + ' > ' + TMP_FILE + ' 2>&1 & echo ok > ' + OK_FILE;}
  	}
  	
 	if(execCmd != '') 
@@ -182,7 +182,7 @@ function print(content)
 		}
 			
 
-		execCmd = "cmd /C " + line + ' > ' + TMP_FILE + ' 2>&1 & echo ok > ' + OK_FILE;
+		execCmd = line + ' > ' + TMP_FILE + ' 2>&1 & echo ok > ' + OK_FILE;
 		log(execCmd);
 		io.remove(OK_FILE);
 		string.save(TMP_BAT, execCmd);
@@ -223,6 +223,7 @@ function print(content)
  	{
  	    vboxManageExe = string.replace(vboxManageExe, "\\", "\\\\");
  		vboxManageExe += "VBoxManage.exe";
+ 		vboxManageExe = '"' + vboxManageExe + '"';
  		return true;
  	}
  	else
@@ -390,9 +391,9 @@ function print(content)
  	print(lang.prompt.mosIsStopping);
  	exec('stop');
  	setIsRunning();
+ 	while(isRunning) {sleep(100);setIsRunning();}
+ 	print(lang.prompt.mosStopped);
  	setButtonStatus();
- 	if(isRunning) return print(lang.prompt.mosStopFailed);
- 	print(lang.prompt.mosStopped)
  }
  
  function snapshot()
