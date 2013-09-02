@@ -33,3 +33,6 @@ sudo mv -v /usr/lib/preloadable_libintl.so /usr/lib/bak/
 
 sudo mkdir -v /usr/lib/php
 sudo mv -v /usr/lib/bak/php/extensions/ /usr/lib/php
+
+sudo mkdir -v /usr/lib/git-core
+sudo mv -v /usr/lib/bak/git-core/git-remote-http* /usr/lib/git-core/
