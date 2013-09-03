@@ -4,6 +4,7 @@ sudo rm -frv /tmp/minify/home/z/.subversion
 sudo rm -frv /tmp/minify/home/z/.viminfo
 sudo rm -frv /tmp/minify/home/z/cmd
 sudo rm -frv /tmp/minify/home/z/.less*
+sudo rm -frv /tmp/minify/home/z/zentaomos
 
 sudo rm -frv /tmp/minify/root
 sudo mkdir -v /tmp/minify/root
