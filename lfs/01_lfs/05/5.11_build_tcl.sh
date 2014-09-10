@@ -1,5 +1,5 @@
 cd $LFS/sources
-tar zxvf tcl*
+tar xvf tcl*
 cd tcl*
 
 cd unix
