@@ -3,6 +3,7 @@ sudo fdisk /dev/sdb
 sudo fdisk /dev/sdc
 sudo fdisk /dev/sdd
 sudo fdisk /dev/sde
-sudo mke2fs -jv /dev/sdb1
-sudo mke2fs -jv /dev/sdc1
-sudo mke2fs -jv /dev/sde1
+sudo mkfs.ext4 -v /dev/sdb1
+sudo mkfs.ext4 -v /dev/sdc1
+sudo mkfs.ext4 -v /dev/sdd1
+sudo mkfs.ext4 -v /dev/sde1
