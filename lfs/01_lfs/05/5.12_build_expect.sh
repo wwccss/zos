@@ -1,5 +1,5 @@
 cd $LFS/sources
-tar zxvf expect*
+tar xvf expect*
 cd expect*
 
 cp -v configure{,.orig}

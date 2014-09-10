@@ -1,5 +1,5 @@
 cd $LFS/sources
-tar zxvf deja*
+tar xvf deja*
 cd deja*
 
 ./configure --prefix=/tools
