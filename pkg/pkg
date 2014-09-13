@@ -1,0 +1,310 @@
+#!/usr/bin/env php
+<?php
+/**
+ * The package manager for zentaomos.
+ * 
+ * @copyright Copyright 2009-2014 QingDao Nature Easy Soft Network Technology Co,LTD (www.cnezsoft.com)
+ * @author    chunsheng wang <chunsheng@cnezsoft.com> 
+ * @package   zentaomos
+ * @license   LGPL
+ * @version   $Id$
+ * @Link      http://www.zentao.net
+ */
+
+/* Init the pkg object and run it. */
+$pkg = new pkg();
+
+class pkg
+{
+    /**
+     * The run mode: install|remove|browse|view|help|build.
+     * 
+     * @var string   
+     * @access private
+     */
+    private $mode;
+
+    /**
+     * The params for one mode.
+     * 
+     * @var string   
+     * @access private
+     */
+    private $params;
+
+    /**
+     * The sqlite database file.
+     * 
+     * @var string   
+     * @access private
+     */
+    private $dbFile;
+
+    /**
+     * The sqlite handler.
+     * 
+     * @var object   
+     * @access private
+     */
+    private $dbh;
+
+    /**
+     * The build dir.
+     * 
+     * @var string   
+     * @access private
+     */
+    private $buildDir;
+
+    /**
+     * The construct function.
+     * 
+     * @param  string    $dbFile 
+     * @access public
+     * @return void
+     */
+    public function  __construct()
+    {
+        $this->getOptions();
+        $this->setBuildDir();
+        $this->init();
+
+        if($this->mode == 'help')  die($this->help());
+        if($this->mode == 'build') $this->build($this->params);
+    }
+
+    /**
+     * Set the build dir.
+     * 
+     * @access public
+     * @return void
+     */
+    public function setBuildDir()
+    {
+        $this->buildDir = dirname(__FILE__) . '/packages/';
+        if(!is_dir($this->buildDir)) mkdir($this->buildDir);
+    }
+
+    /**
+     * Init the database.
+     * 
+     * @access public
+     * @return void
+     */
+    public function init()
+    {
+        $this->dbFile = $this->buildDir . 'pkg.db';
+        $createTable  = !file_exists($this->dbFile);
+        $this->openDB();
+        $this->createTables($createTable);
+    }
+
+    /**
+     * Open the database.
+     * 
+     * @access public
+     * @return void
+     */
+    public function openDB()
+    {
+        $this->dbh = new sqlite3($this->dbFile);
+    }
+
+    /**
+     * Create tables.
+     * 
+     * @param  bool    $createTable 
+     * @access public
+     * @return void
+     */
+    public function createTables($createTable)
+    {
+        if(!$createTable) return false;
+
+        $sql  = "CREATE TABLE package(id INTEGER PRIMARY KEY, name TEXT, version TEXT, desc TEXT);";
+        $sql .= "CREATE INDEX pkg_index on package(name, version);";
+        $sql .= "CREATE TABLE file(id INTEGER PRIMARY KEY, package TEXT, version TEXT, path TEXT, owner TEXT, mode TEXT);";
+        $sql .= "CREATE INDEX path on file(path);";
+        $sql .= "CREATE INDEX file_pkg on file(package, version);";
+
+        $this->dbh->exec($sql);
+    }
+
+    /**
+     * Build a package.
+     * 
+     * @param  mixed    $params    array('package', 'version', 'logFile', 'desc', 'prefix') or just the pkg.ini file.;
+     * @access public
+     * @return void
+     */
+    public function build($params)
+    {
+        /* Set params: $> pkg build pkg.ini installwatchlogfile prefix or just $> pkg build pkg.ini.  */
+        $pkgIniFile = is_array($params) ? realpath($params[0]) : realpath($params);
+        if(!is_file($pkgIniFile)) die("the pkg.ini file not exists.\n");
+
+        if(is_array($params))
+        {
+            $package = (object)parse_ini_file($pkgIniFile);
+            $files   = $this->getFilesFromInstallWatchLog($params[1]);
+            $prefix  = rtrim($params[2], '/') . '/';
+        }
+        else
+        {
+            $package = (object)parse_ini_file($pkgIniFile);
+            $files = $this->getFilesByPackageINI($pkgIniFile);
+            $prefix = dirname($pkgIniFile) . '/';
+        }
+
+        /* Init the ini file. */
+        $ini = "[package]\nname=$package->name\nversion=$package->version\ndesc=$package->desc\n[files]\n";
+
+        /* Set package vars and init the directory. */
+        $packageDir = $this->buildDir . $package->name . ".$package->version/";
+        $packageTar = "$this->buildDir{$package->name}.{$package->version}.tar.gz";
+
+        if(!is_dir($packageDir)) echo `mkdir -v -p $packageDir`;
+        if(is_dir($packageDir))  echo `rm -fr $packageDir*`;
+        if(is_file($packageTar)) echo `rm -frv $packageTar`;
+
+        /* Copy and save to database. */
+        foreach($files as $file => $mode)
+        {
+            /* Copy files. */
+            $targetFile = $packageDir . str_replace($prefix, '', $file);
+            $targetDir  = dirname($targetFile);
+            if(!is_dir($targetDir)) echo `mkdir -v -p $targetDir`;
+            echo `cp -v -p $file $targetFile`;
+
+            /* Append files to the ini file. */
+            $ini .= str_replace($prefix, '', $file) . "=$mode\n";
+        }
+
+        /* Save the pkg.ini file. */
+        file_put_contents($packageDir . 'pkg.ini', $ini);
+
+        /* Make the tar package and remove the tmp files. */
+        echo `cd $this->buildDir && tar cpzvf $packageTar $package->name.$package->version`;
+        echo `rm -frv $packageDir`;
+    }
+
+    /**
+     * Get files from the installwatch log.
+     * 
+     * @param  string    $logFile 
+     * @access public
+     * @return array
+     */
+    public function getFilesFromInstallWatchLog($logFile)
+    {
+        $files = array();
+        $lines = explode("\n", trim(file_get_contents($logFile)));
+        foreach($lines as $line)
+        {
+            if(strpos($line, '/dev/null') !== false) continue;
+
+            list($result, $action, $file, $extra) = explode("\t", $line);
+            if($action == 'open')  $files[$file] = '';
+            if($action == 'chmod') $files[$file] = $extra;
+        }
+        return $files;
+    }
+
+    /**
+     * Give a pkg ini file and get files in it's directoy.
+     * 
+     * @param  string    $iniFile 
+     * @access public
+     * @return array
+     */
+    public function getFilesByPackageINI($iniFile)
+    {
+        $files = array();
+
+        $path  = dirname(realpath($iniFile));
+        $lines = explode("\n", trim(`find $path/* | sort`));
+        foreach($lines as $file)
+        {
+            if(is_dir($file) or strpos($file, 'pkg.ini') !== false) continue;
+
+            $mode = substr(sprintf('%o', fileperms($file)), -4);
+            $files[$file] = $mode;
+        }
+
+        return $files;
+    }
+
+    /**
+     * Install a package.
+     * 
+     * @access public
+     * @return void
+     */
+    public function install()
+    {
+        /* Save package to database. */
+        $sql  = "DELETE FROM package WHERE name = '$package' AND version = '$version';";
+        $sql .= "DELETE FROM file WHERE package = '$package' AND version = '$version';";
+        $sql .= "INSERT INTO package (`name`, `version`, `desc`) VALUES('$package', '$version', '$desc')";
+        $this->dbh->exec($sql);
+
+        /* Copy and save to database. */
+        foreach($files as $file => $mode)
+        {
+            /* Save files to databases. */
+            $path = str_replace($prefix, '', $file);
+            $sql  = "INSERT INTO file (`package`, `version`, `path`, `mode`) VALUES('$package', '$version', '$path', '$mode')";
+            $this->dbh->exec($sql);
+        }
+    }
+
+    /**
+     * Print the help info.
+     * 
+     * @access public
+     * @return void
+     */
+    public function help()
+    {
+        echo <<<EOT
+pkg is a package manger for zentaomos.
+
+ -l   --list list  list all packages.
+ -v   --view view  view a package.
+
+EOT;
+    }
+ 
+    /**
+     * Get options from cmd.
+     * 
+     * @access public
+     * @return void
+     */
+    public function getOptions()
+    {
+        global $argc, $argv;
+
+        $mode   = 'help';
+        $params = array();
+
+        if($argc > 1)
+        {
+            switch($argv[1])
+            {  
+                           case '--init':    case 'init':     $mode  = 'init';     break;
+                case '-i': case '--install': case 'install':  $mode  = 'install';  break;
+                case '-r': case '--remove':  case 'remove':   $mode  = 'remove';   break;
+                case '-l': case '--list':    case 'list':     $mode  = 'browse';   break;
+                case '-v': case '--view':    case 'view':     $mode  = 'view';     break;
+                case '-h': case '--help':    case 'help':     $mode  = 'help';     break;
+                case '-b': case '--build':   case 'build':    $mode  = 'build';    break;
+            }
+
+            $params = array_slice($argv, 2);
+        }
+
+        $this->mode   = $mode;
+        $this->params = count($params) == 1 ? $params[0] : $params;
+    }
+}
