@@ -11,7 +11,6 @@
  * @Link      http://www.zentao.net
  */
 
-/* Init the pkg object and run it. */
 $pkg = new pkg();
 
 class pkg
@@ -81,7 +80,7 @@ class pkg
      */
     public function setBuildDir()
     {
-        $this->buildDir = dirname(__FILE__) . '/packages/';
+        $this->buildDir = getenv('HOME') . '/packages/';
         if(!is_dir($this->buildDir)) mkdir($this->buildDir);
     }
 
@@ -168,7 +167,7 @@ class pkg
         if(is_file($packageTar)) echo `rm -frv $packageTar`;
 
         /* Copy and save to database. */
-        foreach($files as $file => $mode)
+        foreach($files as $file => $info)
         {
             /* Copy files. */
             $targetFile = $packageDir . str_replace($prefix, '', $file);
@@ -177,7 +176,7 @@ class pkg
             echo `cp -v -p $file $targetFile`;
 
             /* Append files to the ini file. */
-            $ini .= str_replace($prefix, '', $file) . "=$mode\n";
+            $ini .= str_replace($prefix, '', $file) . "=$info[mode],$info[md5]\n";
         }
 
         /* Save the pkg.ini file. */
@@ -204,9 +203,12 @@ class pkg
             if(strpos($line, '/dev/null') !== false) continue;
 
             list($result, $action, $file, $extra) = explode("\t", $line);
-            if($action == 'open')  $files[$file] = '';
-            if($action == 'chmod') $files[$file] = $extra;
+            if($action != 'open') continue;
+
+            $files[$file]['mode'] = substr(sprintf('%o', fileperms($file)), -4);
+            $files[$file]['md5']  = md5_file($file);
         }
+
         return $files;
     }
 
@@ -227,8 +229,8 @@ class pkg
         {
             if(is_dir($file) or strpos($file, 'pkg.ini') !== false) continue;
 
-            $mode = substr(sprintf('%o', fileperms($file)), -4);
-            $files[$file] = $mode;
+            $files[$file]['mode'] = substr(sprintf('%o', fileperms($file)), -4);
+            $files[$file]['md5']  = md5_file($file);
         }
 
         return $files;
