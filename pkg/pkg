@@ -77,6 +77,7 @@ class pkg
         $this->init();
 
         if($this->mode == 'help')    $this->help();
+        if($this->mode == 'watch')   $this->watch(join(' ', $this->params));
         if($this->mode == 'build')   $this->setBuildDir() && $this->build($this->params);
         if($this->mode == 'install') $this->install($this->params);
     }
@@ -143,6 +144,27 @@ class pkg
     }
 
     /**
+     * Call the installwatch shell.
+     * 
+     * @param  string    $command 
+     * @access public
+     * @return void
+     */
+    public function watch($command)
+    {
+        /* Set log files. */
+        $workDir = getcwd() . '/';
+        $lastLog = $workDir . 'installwatch.log';
+        $tmpLog  = $workDir . uniqid();
+        if(strpos($command, 'make') !== false) `rm -fr $lastLog`;
+
+        /* Call installwatch to get the installlog and append to the last log file. */
+        echo `installwatch -o $tmpLog $command`;
+        `cat $tmpLog >>$lastLog`;
+        `rm -fr $tmpLog`;
+    }
+
+    /**
      * Set the build dir.
      * 
      * @access public
@@ -152,6 +174,7 @@ class pkg
     {
         $this->buildDir = getenv('HOME') . '/packages/';
         if(!is_dir($this->buildDir)) mkdir($this->buildDir);
+        return true;
     }
 
     /**
@@ -395,6 +418,7 @@ EOT;
                 case '-l': case '--list':    case 'list':     $mode  = 'browse';   break;
                 case '-v': case '--view':    case 'view':     $mode  = 'view';     break;
                 case '-h': case '--help':    case 'help':     $mode  = 'help';     break;
+                case '-w': case '--watch':   case 'watch':    $mode  = 'watch';    break;
                 case '-b': case '--build':   case 'build':    $mode  = 'build';    break;
             }
 
