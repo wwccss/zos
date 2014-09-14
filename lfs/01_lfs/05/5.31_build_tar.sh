@@ -1,8 +1,6 @@
 cd $LFS/sources
-tar jxvf  tar*.bz2
+tar xvf  tar*.xz
 cd tar*
-
-sed -i -e '/gets is a/d' gnu/stdio.in.h
 
 ./configure --prefix=/tools
 make
