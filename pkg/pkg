@@ -80,6 +80,9 @@ class pkg
         if($this->mode == 'watch')   $this->watch(join(' ', $this->params));
         if($this->mode == 'build')   $this->setBuildDir() && $this->build($this->params);
         if($this->mode == 'install') $this->install($this->params);
+        if($this->mode == 'browse')  $this->browse($this->params);
+        if($this->mode == 'view')    $this->view($this->params);
+        if($this->mode == 'remove')  $this->remove($this->params);
     }
 
     /**
@@ -364,6 +367,108 @@ class pkg
         foreach($keys as $key) if(!isset($ini->$key)) $ini->key = '';
 
         return $ini;
+    }
+
+    /**
+     * Browse packages.
+     * 
+     * @param  string    $key 
+     * @access public
+     * @return void
+     */
+    public function browse($key)
+    {
+        if(is_array($key)) $key = join('', $key);
+        if(!empty($key)) $sql = "SELECT * FROM package WHERE name LIKE '%$key%' ORDER BY name";
+        if(empty($key))  $sql = "SELECT * FROM package ORDER BY name";
+
+        $result = $this->dbh->query($sql);
+        while($package = $result->fetchArray())
+        {
+            echo "$package[name]\t$package[version]\t$package[desc]\t$package[maintainer]\n";
+        }
+    }
+
+    /**
+     * View a package.
+     * 
+     * @param  string    $package 
+     * @access public
+     * @return void
+     */
+    public function view($package)
+    {
+        if(empty($package)) die("Please input the package name.\n");
+
+        $sql     = "SELECT * FROM package WHERE name = '$package'";
+        $result  = $this->dbh->query($sql);
+        $package = $result->fetchArray();
+        echo "Name:$package[name]\nVersion:$package[version]\nDesc:$package[desc]\nMaintainer:$package[maintainer]\n\n";
+
+        $sql    = "SELECT * FROM file WHERE package = '$package[name]'";
+        $result = $this->dbh->query($sql);
+        while($file = $result->fetchArray())
+        {
+            echo "$file[path]\t$file[mode]\t$file[md5]\n";
+        }
+    }
+
+    /**
+     * Remove package.
+     * 
+     * @param  string    $package 
+     * @access public
+     * @return void
+     */
+    public function remove($package)
+    {
+        if(empty($package)) die("Please input the package name.\n");
+        echo "Are you sure to remove the package $package?(y/n)";
+        if(trim(fgets(STDIN)) == 'n') die();
+
+        $dirs   = array();
+        $sql    = "SELECT * FROM file WHERE package = '$package'";
+        $result = $this->dbh->query($sql);
+        while($file = $result->fetchArray())
+        {
+            $installedFile = $this->installDir . $file['path'];
+            $md5 = md5_file($installedFile); 
+
+            /* Backup modified files. */
+            if(!is_link($installedFile) and $md5 != $file['md5'])
+            {
+                echo `mv -v $installedFile $installedFile.bak`;
+                continue;
+            }
+
+            echo `rm -fv $installedFile`;           // Remove files.
+            $dirs[dirname($installedFile)] = '';    // Store the directories.
+        }
+
+        /* Try to remove empty directories. */
+        $dirs = array_keys($dirs);
+        rsort($dirs);
+        foreach($dirs as $dir) $this->rmdir($dir);
+
+        /* Delete database records. */
+        $sql    = "DELETE FROM package WHERE name = '$package';";
+        $sql   .= "DELETE FROM file WHERE package = '$package';";
+        $result = $this->dbh->exec($sql);
+
+        echo "Package $package removed.\n";
+    }
+
+    /**
+     * Remove a dir recursively.
+     * 
+     * @param  string    $path 
+     * @access public
+     * @return void
+     */
+    public function rmdir($path)
+    {
+        if(!@rmdir($path)) return false;
+        return $this->rmdir(dirname($path));
     }
 
     /**
