@@ -193,13 +193,13 @@ class pkg
 
         if(is_array($params))
         {
-            $files  = $this->getFilesFromInstallWatchLog($params[1]);
             $prefix = rtrim($params[2], '/') . '/';
+            $files  = $this->getFilesFromInstallWatchLog($params[1], $prefix);
         }
         else
         {
-            $files  = $this->getFilesByPackageINI($pkgIniFile);
             $prefix = dirname($pkgIniFile) . '/';
+            $files  = $this->getFilesByPackageINI($pkgIniFile);
         }
 
         /* Set package vars and init the directory. */
@@ -217,11 +217,11 @@ class pkg
             $targetFile = $packageDir . str_replace($prefix, '', $file);
             $targetDir  = dirname($targetFile);
             if(!is_dir($targetDir)) echo `mkdir -v -p $targetDir`;
-            echo `cp -v -p $file $targetFile`;
+            echo `cp -av $file $targetFile`;
         }
 
         /* Copy pkg.ini file. */
-        `cp -v $pkgIniFile $packageDir`;
+        `cp -v $pkgIniFile {$packageDir}pkg.ini`;
 
         /* Make the tar package and remove the tmp files. */
         echo `cd $this->buildDir && tar cpzvf $packageTar $package->name.$package->version`;
@@ -232,21 +232,21 @@ class pkg
      * Get files from the installwatch log.
      * 
      * @param  string    $logFile 
+     * @param  string    $prefix 
      * @access public
      * @return array
      */
-    public function getFilesFromInstallWatchLog($logFile)
+    public function getFilesFromInstallWatchLog($logFile, $prefix)
     {
         $files = array();
         $lines = explode("\n", trim(file_get_contents($logFile)));
         foreach($lines as $line)
         {
-            if(strpos($line, '/dev/null') !== false) continue;
+            if(strpos($line, $prefix) === false) continue;
 
             list($result, $action, $file, $extra) = explode("\t", $line);
-            if($action != 'open') continue;
-
-            $files[] = $file;
+            if($action == 'open')    $files[] = $file;
+            if($action == 'symlink') $files[] = $extra;
         }
 
         return array_unique($files);
@@ -313,7 +313,7 @@ class pkg
             $targetFile = '/tmp/test' . str_replace(dirname($pkgINI), '', $file);
             $targetDir  = dirname($targetFile);
             if(!is_dir($targetDir)) `mkdir -v -p $targetDir`;
-            `cp -v -p $file $targetFile`;
+            `cp -av $file $targetFile`;
 
             /* Get mode and md5, save into table. */
             $mode = substr(sprintf('%o', fileperms($file)), -4);
