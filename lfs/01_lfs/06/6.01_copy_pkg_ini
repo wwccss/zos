@@ -1,2 +1,2 @@
-rm -frv $LFS/sources/pkgini
-cp -frv pkgini $LFS/sources/
+rm -frv $LFS/sources/ini
+cp -frv ~/zentaomos/pkg/ini/ $LFS/sources/
