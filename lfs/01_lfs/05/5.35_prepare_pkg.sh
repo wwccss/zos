@@ -6,3 +6,4 @@ cd php*
 ./configure --prefix=/tools/ --disable-all --without-pear
 make
 make install
+cp /usr/bin/installwatch /tools/bin/
