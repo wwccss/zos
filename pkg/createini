@@ -1,0 +1,47 @@
+#!/usr/bin env php
+<?php
+$packageFiles = glob('./packages/*');
+$packageList = array();
+foreach($packageFiles as $packageFile)
+{
+    $result = array();
+
+    /* Get package name and version. */
+    $package = file_get_contents($packageFile);
+    preg_match('|<h1 class="sect1">([\w\W]*?)</h1>|', $package, $result);
+
+    $packageName = str_replace("\n", '', trim(strip_tags($result[1])));   // Remove \n.
+    $packageName = preg_replace('/\s+/', ' ', $packageName);              // Replace multi space with one.
+
+    $packageName = explode(' ', trim($packageName));
+    $packageName = $packageName[1];
+    $lastPos = strrpos($packageName, '-');
+    $packageVersion = substr($packageName, $lastPos + 1);
+    $packageName = strtolower(substr($packageName, 0, $lastPos));
+
+    /* Get package desc. */
+    preg_match('|<div class="package"([\w\W]*?)<div class="segmentedlist">|', $package, $result);
+    $packageDesc = preg_replace('/\s+/', ' ', trim(strip_tags($result[0])));
+
+    $packageList[$packageName]['version'] = $packageVersion;
+    $packageList[$packageName]['desc'] = $packageDesc;
+}
+
+/* Create package ini files. */
+foreach($packageList as $packageName => $package)
+{
+    $pkgINI = <<<EOT
+[basic]
+name=$packageName;
+version=$package[version];
+desc=$package[desc]
+maintainer=chunsheng wang<chunsheng@cnezsoft.com>
+depends=""
+[preinstall]
+[postinstall]
+[preuninstall]
+[postuninstall]
+EOT;
+
+    file_put_contents($packageName . '.ini', $pkgINI);
+}
