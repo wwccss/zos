@@ -1,0 +1,2 @@
+rm -frv $LFS/sources/pkgini
+cp -frv pkgini $LFS/sources/
