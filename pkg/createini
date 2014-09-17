@@ -1,4 +1,4 @@
-#!/usr/bin env php
+#!/usr/bin/env php
 <?php
 $packageFiles = glob('./packages/*');
 $packageList = array();
@@ -32,10 +32,10 @@ foreach($packageList as $packageName => $package)
 {
     $pkgINI = <<<EOT
 [basic]
-name=$packageName;
-version=$package[version];
-desc=$package[desc]
-maintainer=chunsheng wang<chunsheng@cnezsoft.com>
+name="$packageName";
+version="$package[version]";
+desc="$package[desc]"
+maintainer="chunsheng wang<chunsheng@cnezsoft.com>"
 depends=""
 [preinstall]
 [postinstall]
