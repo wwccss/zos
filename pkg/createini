@@ -43,5 +43,5 @@ depends=""
 [postuninstall]
 EOT;
 
-    file_put_contents($packageName . '.ini', $pkgINI);
+    file_put_contents('./ini/' . $packageName . '.ini', $pkgINI);
 }
