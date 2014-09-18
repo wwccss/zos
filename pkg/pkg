@@ -236,6 +236,10 @@ class pkg
         /* Copy files. */
         foreach($files as $file)
         {
+            /* Skip cache files. */
+            if(strpos($file, 'ld.so.cache') !== false or 
+               strpos($file, 'aux-cache')   !== false) continue;
+
             /* Copy files. */
             if($prefix != '/') $file = str_replace($prefix, '', $file);
             $targetFile = $packageDir . $file;
