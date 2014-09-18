@@ -21,7 +21,7 @@ notifier=$PWD/.notifier;
 
 # Watch the watcher
 inotifywait -mrq --event create,modify --format '%w %e %f' \
-  --exclude '(/mnt/lfs/sources/|/mnt/lfs/tools|/mnt/lfs/tmp/|/mnt/lfs/root/|/mnt/lfs/dev/pts/|/mnt/lfs/dev/null)' $watcher |\
+  --exclude '(/mnt/lfs/sources/|/mnt/lfs/tools|/mnt/lfs/tmp/|/mnt/lfs/root/|/mnt/lfs/dev/)' $watcher |\
 while read dir event file ; do
 
   # Get the logfile name from the notifier file by "pkg watch" command.
