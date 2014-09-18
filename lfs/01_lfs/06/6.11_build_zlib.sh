@@ -1,10 +1,15 @@
 cd /sources/
-tar jxvf  zlib*.bz2
+tar xvf  zlib*.xz
 cd zlib*
+
+pkg watch /mnt/lfs
 
 ./configure --prefix=/usr
 make
 make check
 make install
+
 mv -v /usr/lib/libz.so.* /lib
-ln -sfv ../../lib/libz.so.1.2.7 /usr/lib/libz.so
+ln -sfv ../../lib/$(readlink /usr/lib/libz.so) /usr/lib/libz.so
+
+pkg build /sources/ini/zlib.ini winst.log /
