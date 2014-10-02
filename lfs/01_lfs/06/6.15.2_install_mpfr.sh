@@ -1,4 +1,8 @@
 cd /sources/mpfr*
+
+pkg watch /mnt/lfs
+
 make install
-make html
 make install-html
+
+pkg build /sources/ini/mpfr.ini winst.log /
