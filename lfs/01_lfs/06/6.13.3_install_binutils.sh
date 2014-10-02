@@ -1,3 +1,5 @@
 cd /sources/binutils-build/
+
+pkg watch /mnt/lfs
 make tooldir=/usr install
-cp -v ../binutils-2.23.1/include/libiberty.h /usr/include
+pkg build /sources/ini/binutils.ini winst.log /
