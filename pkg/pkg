@@ -267,14 +267,14 @@ class pkg
     public function getFilesFromLog($logFile, $prefix)
     {
         /* Make sure the logfile is not changed anymore. */
-        $md5 = md5_file($logFile);
+        $mtime = filemtime($logFile);
         while(true)
         {
-            sleep(2);
-            if(md5_file($logFile) == $md5) break;
-            $md5 = md5_file($logFile);
+            sleep(5);
+            clearstatcache();
+            if(filemtime($logFile) == $mtime) break;
+            $mtime = filemtime($logFile);
         }
-
 
         $files = array();
         $lines = explode("\n", trim(file_get_contents($logFile)));
