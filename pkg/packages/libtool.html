@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content=
+    "application/xhtml+xml; charset=iso-8859-1" />
+    <title>
+      6.34.&nbsp;Libtool-2.4.2
+    </title>
+    <link rel="stylesheet" href="../stylesheets/lfs.css" type="text/css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.73.2" />
+    <link rel="stylesheet" href="../stylesheets/lfs-print.css" type=
+    "text/css" media="print" />
+  </head>
+  <body class="lfs" id="lfs-7.3">
+    <div class="navheader">
+      <h4>
+        Linux From Scratch - Version 7.3
+      </h4>
+      <h3>
+        Chapter&nbsp;6.&nbsp;Installing Basic System Software
+      </h3>
+      <ul>
+        <li class="prev">
+          <a accesskey="p" href="bash.html" title="Bash-4.2">Prev</a>
+          <p>
+            Bash-4.2
+          </p>
+        </li>
+        <li class="next">
+          <a accesskey="n" href="gdbm.html" title="GDBM-1.10">Next</a>
+          <p>
+            GDBM-1.10
+          </p>
+        </li>
+        <li class="up">
+          <a accesskey="u" href="chapter06.html" title=
+          "Chapter&nbsp;6.&nbsp;Installing Basic System Software">Up</a>
+        </li>
+        <li class="home">
+          <a accesskey="h" href="../index.html" title=
+          "Linux From Scratch - Version 7.3">Home</a>
+        </li>
+      </ul>
+    </div>
+    <div class="wrap" lang="en" xml:lang="en">
+      <h1 class="sect1">
+        <a id="ch-system-libtool" name="ch-system-libtool"></a>6.34.
+        Libtool-2.4.2
+      </h1>
+      <div class="package" lang="en" xml:lang="en">
+        <p>
+          The Libtool package contains the GNU generic library support
+          script. It wraps the complexity of using shared libraries in a
+          consistent, portable interface.
+        </p>
+        <div class="segmentedlist">
+          <div class="seglistitem">
+            <div class="seg">
+              <strong class="segtitle">Approximate build time:</strong>
+              <span class="segbody">3.0 SBU</span>
+            </div>
+            <div class="seg">
+              <strong class="segtitle">Required disk space:</strong>
+              <span class="segbody">37 MB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="installation" lang="en" xml:lang="en">
+        <h2 class="sect2">
+          6.34.1. Installation of Libtool
+        </h2>
+        <p>
+          Prepare Libtool for compilation:
+        </p>
+        <pre class="userinput">
+<kbd class="command">./configure --prefix=/usr</kbd>
+</pre>
+        <p>
+          Compile the package:
+        </p>
+        <pre class="userinput">
+<kbd class="command">make</kbd>
+</pre>
+        <p>
+          To test the results (about 3.0 SBU), issue:
+        </p>
+        <pre class="userinput">
+<kbd class="command">make check</kbd>
+</pre>
+        <p>
+          Install the package:
+        </p>
+        <pre class="userinput">
+<kbd class="command">make install</kbd>
+</pre>
+      </div>
+      <div class="content" lang="en" xml:lang="en">
+        <h2 class="sect2">
+          <a id="contents-libtool" name="contents-libtool"></a>6.34.2.
+          Contents of Libtool
+        </h2>
+        <div class="segmentedlist">
+          <div class="seglistitem">
+            <div class="seg">
+              <strong class="segtitle">Installed programs:</strong>
+              <span class="segbody">libtool and libtoolize</span>
+            </div>
+            <div class="seg">
+              <strong class="segtitle">Installed libraries:</strong>
+              <span class="segbody">libltdl.{a,so}</span>
+            </div>
+            <div class="seg">
+              <strong class="segtitle">Installed directories:</strong>
+              <span class="segbody">/usr/include/libltdl,
+              /usr/share/libtool</span>
+            </div>
+          </div>
+        </div>
+        <div class="variablelist">
+          <h3>
+            Short Descriptions
+          </h3>
+          <table border="0">
+            <col align="left" valign="top" />
+            <tbody>
+              <tr>
+                <td>
+                  <p>
+                    <a id="libtool" name="libtool"></a><span class=
+                    "term"><span class=
+                    "command"><strong>libtool</strong></span></span>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    Provides generalized library-building support services
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p>
+                    <a id="libtoolize" name="libtoolize"></a><span class=
+                    "term"><span class=
+                    "command"><strong>libtoolize</strong></span></span>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    Provides a standard way to add <span class=
+                    "command"><strong>libtool</strong></span> support to a
+                    package
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p>
+                    <a id="libltdl" name="libltdl"></a><span class=
+                    "term"><code class="filename">libltdl</code></span>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    Hides the various difficulties of dlopening libraries
+                  </p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <ul>
+        <li class="prev">
+          <a accesskey="p" href="bash.html" title="Bash-4.2">Prev</a>
+          <p>
+            Bash-4.2
+          </p>
+        </li>
+        <li class="next">
+          <a accesskey="n" href="gdbm.html" title="GDBM-1.10">Next</a>
+          <p>
+            GDBM-1.10
+          </p>
+        </li>
+        <li class="up">
+          <a accesskey="u" href="chapter06.html" title=
+          "Chapter&nbsp;6.&nbsp;Installing Basic System Software">Up</a>
+        </li>
+        <li class="home">
+          <a accesskey="h" href="../index.html" title=
+          "Linux From Scratch - Version 7.3">Home</a>
+        </li>
+      </ul>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content=
+    "application/xhtml+xml; charset=iso-8859-1" />
+    <title>
+      6.61.&nbsp;Udev-197 (Extracted from systemd-197)
+    </title>
+    <link rel="stylesheet" href="../stylesheets/lfs.css" type="text/css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.73.2" />
+    <link rel="stylesheet" href="../stylesheets/lfs-print.css" type=
+    "text/css" media="print" />
+  </head>
+  <body class="lfs" id="lfs-7.3">
+    <div class="navheader">
+      <h4>
+        Linux From Scratch - Version 7.3
+      </h4>
+      <h3>
+        Chapter&nbsp;6.&nbsp;Installing Basic System Software
+      </h3>
+      <ul>
+        <li class="prev">
+          <a accesskey="p" href="texinfo.html" title="Texinfo-5.0">Prev</a>
+          <p>
+            Texinfo-5.0
+          </p>
+        </li>
+        <li class="next">
+          <a accesskey="n" href="vim.html" title="Vim-7.3">Next</a>
+          <p>
+            Vim-7.3
+          </p>
+        </li>
+        <li class="up">
+          <a accesskey="u" href="chapter06.html" title=
+          "Chapter&nbsp;6.&nbsp;Installing Basic System Software">Up</a>
+        </li>
+        <li class="home">
+          <a accesskey="h" href="../index.html" title=
+          "Linux From Scratch - Version 7.3">Home</a>
+        </li>
+      </ul>
+    </div>
+    <div class="wrap" lang="en" xml:lang="en">
+      <h1 class="sect1">
+        <a id="ch-system-udev" name="ch-system-udev"></a>6.61. Udev-197
+        (Extracted from systemd-197)
+      </h1>
+      <div class="package" lang="en" xml:lang="en">
+        <p>
+          The Udev package contains programs for dynamic creation of device
+          nodes. The development of udev has been merged with systemd, but
+          most of systemd is incompatible with LFS. Here we build and install
+          just the needed udev files.
+        </p>
+        <div class="segmentedlist">
+          <div class="seglistitem">
+            <div class="seg">
+              <strong class="segtitle">Approximate build time:</strong>
+              <span class="segbody">0.1 SBU</span>
+            </div>
+            <div class="seg">
+              <strong class="segtitle">Required disk space:</strong>
+              <span class="segbody">23 MB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="installation" lang="en" xml:lang="en">
+        <h2 class="sect2">
+          6.61.1. Installation of Udev
+        </h2>
+        <div class="admon note">
+          <img alt="[Note]" src="../images/note.png" />
+          <h3>
+            Note
+          </h3>
+          <p>
+            This package is a little different from other packages. The
+            initial package that is extracted is <code class=
+            "filename">systemd-197.tar.xz</code> even though the application
+            we are installing is udev. After changing to the systemd
+            directory, follow the instructions below.
+          </p>
+        </div>
+        <p>
+          The udev-lfs tarball contains LFS-specific files used to build
+          Udev. Unpack it into the systemd source directory:
+        </p>
+        <pre class="userinput">
+<kbd class="command">tar -xvf ../udev-lfs-197-2.tar.bz2</kbd>
+</pre>
+        <p>
+          Compile the package:
+        </p>
+        <pre class="userinput">
+<kbd class="command">make -f udev-lfs-197-2/Makefile.lfs</kbd>
+</pre>
+        <p>
+          Install the package:
+        </p>
+        <pre class="userinput">
+<kbd class="command">make -f udev-lfs-197-2/Makefile.lfs install</kbd>
+</pre>
+        <div class="admon caution">
+          <img alt="[Caution]" src="../images/caution.png" />
+          <h3>
+            Caution
+          </h3>
+          <p>
+            There are several places within the <span class=
+            "application">systemd</span> source code that have explicit
+            directory paths embedded. For instance, the binary version of the
+            hardware database's path and file name used at run time,
+            <code class="filename">/etc/udev/hwdb.bin</code>, cannot be
+            changed without explict changes to the source code.
+          </p>
+        </div>
+        <p>
+          Now initialize the hardware database:
+        </p>
+        <pre class="userinput">
+<kbd class="command">build/udevadm hwdb --update</kbd>
+</pre>
+        <p>
+          Finally set up the persistent network udev rules. This task will be
+          explained in detail in <a class="xref" href=
+          "../chapter07/network.html#stable-net-names" title=
+          "7.2.1.&nbsp;Creating stable names for network interfaces">Section&nbsp;7.2.1,
+          &ldquo;Creating stable names for network interfaces&rdquo;</a>.
+          Note that the <code class="filename">/sys</code> and <code class=
+          "filename">/proc</code> filesystems must be mounted in the chroot
+          environment as explained at the beginning of this chapter for the
+          following script to work.
+        </p>
+        <pre class="userinput">
+<kbd class="command">bash udev-lfs-197-2/init-net-rules.sh</kbd>
+</pre>
+      </div>
+      <div class="content" lang="en" xml:lang="en">
+        <h2 class="sect2">
+          <a id="contents-udev" name="contents-udev"></a>6.61.2. Contents of
+          Udev
+        </h2>
+        <div class="segmentedlist">
+          <div class="seglistitem">
+            <div class="seg">
+              <strong class="segtitle">Installed programs:</strong>
+              <span class="segbody">accelerometer, ata_id, cdrom_id, collect,
+              mtd_probe, scsi_id, v4l_id, udevadm, and udevd</span>
+            </div>
+            <div class="seg">
+              <strong class="segtitle">Installed libraries:</strong>
+              <span class="segbody">libudev.so</span>
+            </div>
+            <div class="seg">
+              <strong class="segtitle">Installed directories:</strong>
+              <span class="segbody">/etc/udev, /lib/udev, /lib/firmware,
+              /usr/share/doc/udev</span>
+            </div>
+          </div>
+        </div>
+        <div class="variablelist">
+          <h3>
+            Short Descriptions
+          </h3>
+          <table border="0">
+            <col align="left" valign="top" />
+            <tbody>
+              <tr>
+                <td>
+                  <p>
+                    <a id="ata_id" name="ata_id"></a><span class=
+                    "term"><span class=
+                    "command"><strong>ata_id</strong></span></span>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    Provides Udev with a unique string and additional
+                    information (uuid, label) for an ATA drive
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p>
+                    <a id="cdrom_id" name="cdrom_id"></a><span class=
+                    "term"><span class=
+                    "command"><strong>cdrom_id</strong></span></span>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    Provides Udev with the capabilities of a CD-ROM or
+                    DVD-ROM drive
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p>
+                    <a id="collect" name="collect"></a><span class=
+                    "term"><span class=
+                    "command"><strong>collect</strong></span></span>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    Given an ID for the current uevent and a list of IDs (for
+                    all target uevents), registers the current ID and
+                    indicates whether all target IDs have been registered
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p>
+                    <a id="scsi_id" name="scsi_id"></a><span class=
+                    "term"><span class=
+                    "command"><strong>scsi_id</strong></span></span>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    Provides Udev with a unique SCSI identifier based on the
+                    data returned from sending a SCSI INQUIRY command to the
+                    specified device
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p>
+                    <a id="udevadm" name="udevadm"></a><span class=
+                    "term"><span class=
+                    "command"><strong>udevadm</strong></span></span>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    Generic udev administration tool: controls the udevd
+                    daemon, provides info from the Udev database, monitors
+                    uevents, waits for uevents to finish, tests Udev
+                    configuration, and triggers uevents for a given device
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p>
+                    <a id="udevd" name="udevd"></a><span class=
+                    "term"><span class=
+                    "command"><strong>udevd</strong></span></span>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    A daemon that listens for uevents on the netlink socket,
+                    creates devices and runs the configured external programs
+                    in response to these uevents
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p>
+                    <a id="libudev" name="libudev"></a><span class=
+                    "term"><code class="filename">libudev</code></span>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    A library interface to udev device information
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p>
+                    <a id="etc-udev" name="etc-udev"></a><span class=
+                    "term"><code class="filename">/etc/udev</code></span>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    Contains Udev configuration files, device permissions,
+                    and rules for device naming
+                  </p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <ul>
+        <li class="prev">
+          <a accesskey="p" href="texinfo.html" title="Texinfo-5.0">Prev</a>
+          <p>
+            Texinfo-5.0
+          </p>
+        </li>
+        <li class="next">
+          <a accesskey="n" href="vim.html" title="Vim-7.3">Next</a>
+          <p>
+            Vim-7.3
+          </p>
+        </li>
+        <li class="up">
+          <a accesskey="u" href="chapter06.html" title=
+          "Chapter&nbsp;6.&nbsp;Installing Basic System Software">Up</a>
+        </li>
+        <li class="home">
+          <a accesskey="h" href="../index.html" title=
+          "Linux From Scratch - Version 7.3">Home</a>
+        </li>
+      </ul>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,580 @@
+#!/usr/bin/env php
+<?php
+/**
+ * The package manager for zentaomos.
+ * 
+ * @copyright Copyright 2009-2014 QingDao Nature Easy Soft Network Technology Co,LTD (www.cnezsoft.com)
+ * @author    chunsheng wang <chunsheng@cnezsoft.com> 
+ * @package   zentaomos
+ * @license   LGPL
+ * @version   $Id$
+ * @Link      http://www.zentao.net
+ */
+
+$pkg = new pkg();
+
+class pkg
+{
+    /**
+     * The run mode: install|remove|browse|view|help|build.
+     * 
+     * @var string   
+     * @access private
+     */
+    private $mode;
+
+    /**
+     * The params for one mode.
+     * 
+     * @var string   
+     * @access private
+     */
+    private $params;
+
+    /**
+     * The sqlite database file.
+     * 
+     * @var string   
+     * @access private
+     */
+    private $dbFile;
+
+    /**
+     * The sqlite handler.
+     * 
+     * @var object   
+     * @access private
+     */
+    private $dbh;
+
+    /**
+     * The build dir.
+     * 
+     * @var string   
+     * @access private
+     */
+    private $buildDir;
+
+    /**
+     * The install dir.
+     * 
+     * @var string   
+     * @access private
+     */
+    private $installDir;
+
+    /**
+     * The notifier
+     * 
+     * @var string   
+     * @access private
+     */
+    private $notifier;
+
+    /**
+     * The construct function.
+     * 
+     * @param  string    $dbFile 
+     * @access public
+     * @return void
+     */
+    public function  __construct()
+    {
+        $this->getOptions();
+        $this->setInstallDir();
+        $this->init();
+
+        if($this->mode == 'help')    $this->help();
+        if($this->mode == 'watch')   $this->setNotifier() && $this->watch($this->params);
+        if($this->mode == 'build')   $this->setBuildDir() && $this->build($this->params);
+        if($this->mode == 'install') $this->install($this->params);
+        if($this->mode == 'browse')  $this->browse($this->params);
+        if($this->mode == 'view')    $this->view($this->params);
+        if($this->mode == 'remove')  $this->remove($this->params);
+    }
+
+    /**
+     * Set the install dir.
+     * 
+     * @access public
+     * @return void
+     */
+    public function setInstallDir()
+    {
+        $this->installDir = '/tmp/test/';
+        if(!is_dir($this->installDir)) mkdir($this->installDir);
+    }
+
+    /**
+     * Init the database.
+     * 
+     * @access public
+     * @return void
+     */
+    public function init()
+    {
+        if(!extension_loaded('sqlite3')) return false;
+
+        $this->dbFile = $this->installDir . 'var/lib/pkg/pkg.db';
+        $dbFilePath = dirname($this->dbFile);
+        if(!is_dir($dbFilePath)) `mkdir -p $dbFilePath`;
+
+        $createTable = !file_exists($this->dbFile);
+        $this->openDB();
+        $this->createTables($createTable);
+    }
+
+    /**
+     * Open the database.
+     * 
+     * @access public
+     * @return void
+     */
+    public function openDB()
+    {
+        $this->dbh = new sqlite3($this->dbFile);
+    }
+
+    /**
+     * Create tables.
+     * 
+     * @param  bool    $createTable 
+     * @access public
+     * @return void
+     */
+    public function createTables($createTable)
+    {
+        if(!$createTable) return false;
+
+        $sql  = "CREATE TABLE package(id INTEGER PRIMARY KEY, name TEXT, version TEXT, desc TEXT, maintainer TEXT, depends TEXT,";
+        $sql .= "preUninstall TEXT, postUninstall TEXT);";
+        $sql .= "CREATE INDEX pkg_index on package(name, version);";
+        $sql .= "CREATE TABLE file(id INTEGER PRIMARY KEY, package TEXT, version TEXT, path TEXT, owner TEXT, mode TEXT, md5 TEXT);";
+        $sql .= "CREATE INDEX path on file(path);";
+        $sql .= "CREATE INDEX file_pkg on file(package, version);";
+
+        $this->dbh->exec($sql);
+    }
+
+    /**
+     * Set the notifier file.
+     * 
+     * @access public
+     * @return void
+     */
+    public function setNotifier()
+    {
+        $this->notifier = dirname(__FILE__) . '/.notifier';
+        return true;
+    }
+
+    /**
+     * Write the logfile name into the notifier file, thus the winst shell can write the files to it.
+     *
+     * It's in chroot env when building lfs, pkg was called in chroot, winst wat called out of chroot,
+     * so I need the prefix var to tell winst shell the real path of logfile.
+     * 
+     * @param  string    $createTable 
+     * @access public
+     * @return void
+     */
+    public function watch($prefix)
+    {
+        $workDir = getcwd() . '/';
+        $inChrootLog  = $workDir . 'winst.log';
+        $outChrootLog = $prefix . $inChrootLog;
+        file_put_contents($this->notifier, $outChrootLog);
+        file_put_contents($inChrootLog, '');
+    }
+
+    /**
+     * Set the build dir.
+     * 
+     * @access public
+     * @return void
+     */
+    public function setBuildDir()
+    {
+        $this->buildDir = getenv('HOME') . '/packages/';
+        if(!is_dir($this->buildDir)) mkdir($this->buildDir);
+        return true;
+    }
+
+    /**
+     * Build a package.
+     * 
+     * @param  mixed    $params    array('package', 'version', 'logFile', 'desc', 'prefix') or just the pkg.ini file.;
+     * @access public
+     * @return void
+     */
+    public function build($params)
+    {
+        /* Set params: $> pkg build pkg.ini installwatchlogfile prefix or just $> pkg build pkg.ini.  */
+        $pkgIniFile = is_array($params) ? realpath($params[0]) : realpath($params);
+        if(!is_file($pkgIniFile)) die("the pkg.ini file not exists.\n");
+        $package = $this->parsePackageINI($pkgIniFile);
+
+        if(is_array($params))
+        {
+            $prefix = rtrim($params[2], '/') . '/';
+            $files  = $this->getFilesFromLog($params[1], $prefix);
+        }
+        else
+        {
+            $prefix = dirname($pkgIniFile) . '/';
+            $files  = $this->getFilesByPackageINI($pkgIniFile);
+        }
+
+        /* Set package vars and init the directory. */
+        $packageDir = $this->buildDir . $package->name . ".$package->version/";
+        $packageTar = "$this->buildDir{$package->name}.{$package->version}.tar.gz";
+
+        if(!is_dir($packageDir)) echo `mkdir -v -p $packageDir`;
+        if(is_dir($packageDir))  echo `rm -fr $packageDir*`;
+        if(is_file($packageTar)) echo `rm -frv $packageTar`;
+
+        /* Copy files. */
+        foreach($files as $file)
+        {
+            /* Skip cache files. */
+            if(strpos($file, 'ld.so.cache') !== false or 
+               strpos($file, 'aux-cache')   !== false) continue;
+
+            /* Copy files. */
+            if($prefix != '/') $file = str_replace($prefix, '', $file);
+            $targetFile = $packageDir . $file;
+            $targetDir  = dirname($targetFile);
+            if(!is_dir($targetDir)) echo `mkdir -v -p $targetDir`;
+            echo `cp -av $file $targetFile`;
+        }
+
+        /* Copy pkg.ini file. */
+        `cp -v $pkgIniFile {$packageDir}pkg.ini`;
+
+        /* Make the tar package and remove the tmp files. */
+        echo `cd $this->buildDir && tar cpzvf $packageTar $package->name.$package->version`;
+        echo `rm -frv $packageDir`;
+    }
+
+    /**
+     * Get files from the log file. The log file can be logged by installwatch or winst.
+     * 
+     * @param  string    $logFile 
+     * @param  string    $prefix 
+     * @access public
+     * @return array
+     */
+    public function getFilesFromLog($logFile, $prefix)
+    {
+        /* Make sure the logfile is not changed anymore. */
+        $mtime = filemtime($logFile);
+        while(true)
+        {
+            sleep(5);
+            clearstatcache();
+            if(filemtime($logFile) == $mtime) break;
+            $mtime = filemtime($logFile);
+        }
+
+        $files = array();
+        $lines = explode("\n", trim(file_get_contents($logFile)));
+        foreach($lines as $line)
+        {
+            $line = trim($line);
+            if(strpos($line, $prefix) === false) continue;
+
+            /* If there's tab in line, it's installwatchlog, else is winst log. */
+            if(strpos($line, "\t") !== false)
+            {
+                list($result, $action, $file, $extra) = explode("\t", $line);
+                if($action == 'open')    $files[] = $file;
+                if($action == 'symlink') $files[] = $extra;
+            }
+            else
+            {
+                $files[] = $line;
+            }
+        }
+
+        return array_unique($files);
+    }
+
+    /**
+     * Give a pkg ini file and get files in it's directoy.
+     * 
+     * @param  string    $iniFile 
+     * @access public
+     * @return array
+     */
+    public function getFilesByPackageINI($iniFile)
+    {
+        $files = array();
+
+        $path  = dirname(realpath($iniFile));
+        $lines = explode("\n", trim(`find $path/* | sort`));
+        foreach($lines as $file)
+        {
+            if(is_dir($file) or strpos($file, 'pkg.ini') !== false) continue;
+            $files[] = $file;
+        }
+
+        return array_unique($files);
+    }
+
+    /**
+     * Install a package.
+     * 
+     * @param  string    $package
+     * @access public
+     * @return void
+     */
+    public function install($package)
+    {
+        if(!is_file($package)) die("$package not exists\n");
+
+        /* Extract files. */
+        $packageTar  = realpath($package);
+        $packageName = basename($package, '.tar.gz');
+        $temp = '/tmp/pkg.' . uniqid() . '/';
+        `mkdir $temp && cd $temp && tar xvpf $packageTar`;
+
+        /* Get package ini file and parse it. */
+        $pkgINI = $temp . $packageName . '/pkg.ini';
+        $package = $this->parsePackageINI($pkgINI);
+
+        /* Excute the preinstall shell. */
+        echo `$package->preinstall`;
+
+        /* Save into package table. */
+        $sql  = "DELETE FROM package WHERE    name = '$package->name' AND version = '$package->version';";
+        $sql .= "DELETE FROM file    WHERE package = '$package->name' AND version = '$package->version';";
+        $sql .= "INSERT INTO package (`name`, `version`, `desc`, `maintainer`, `depends`, `preuninstall`, `postuninstall`) 
+                 VALUES ('$package->name', '$package->version', '$package->desc', '$package->maintainer', '$package->depends', '$package->preuninstall', '$package->postuninstall')";
+        $this->dbh->exec($sql);
+
+        /* Get files, copy them and then insert into file table. */
+        $files = $this->getFilesByPackageINI($pkgINI);
+        foreach($files as $file)
+        {
+            /* Copy files. */
+            $targetFile = '/tmp/test' . str_replace(dirname($pkgINI), '', $file);
+            $targetDir  = dirname($targetFile);
+            if(!is_dir($targetDir)) `mkdir -v -p $targetDir`;
+            `cp -av $file $targetFile`;
+
+            /* Get mode and md5, save into table. */
+            $mode = substr(sprintf('%o', fileperms($file)), -4);
+            $md5  = md5_file($file);
+            $path = str_replace(dirname($pkgINI), '', $file);
+            $sql  = "INSERT INTO file (`package`, `version`, `path`, `mode`, `md5`) VALUES('$package->name', '$package->version', '$path', '$mode', '$md5')";
+            $this->dbh->exec($sql);
+        }
+
+        /* Remove the temp directoy. */
+        `rm -fr $temp`;
+
+        /* Excute the postinstall shell. */
+        echo `$package->postinstall`;
+    }
+
+    /**
+     * Parse package ini file.
+     * 
+     * @param  string    $iniFile 
+     * @access public
+     * @return void
+     */
+    public function parsePackageINI($iniFile)
+    {
+        $ini = new stdclass();
+
+        $lines = file_get_contents($iniFile);
+        $lines = trim($lines, '[');
+        $lines = explode("[", $lines);
+        foreach($lines as $line)
+        {
+            list($section, $content)  = explode("]\n", $line);
+
+            $section = trim($section);
+            if($section == 'basic')
+            {
+                $content = parse_ini_string(trim($content));
+                foreach($content as $key => $value) $ini->$key = $value;
+            }
+            else
+            {
+                $ini->$section = trim($content);
+            }
+        }
+
+        $keys = array('maintainer', 'preinstall', 'postinstall', 'preuninstall', 'postuninstall', 'depends');
+        foreach($keys as $key) if(!isset($ini->$key)) $ini->key = '';
+
+        return $ini;
+    }
+
+    /**
+     * Browse packages.
+     * 
+     * @param  string    $key 
+     * @access public
+     * @return void
+     */
+    public function browse($key)
+    {
+        if(is_array($key)) $key = join('', $key);
+        if(!empty($key)) $sql = "SELECT * FROM package WHERE name LIKE '%$key%' ORDER BY name";
+        if(empty($key))  $sql = "SELECT * FROM package ORDER BY name";
+
+        $result = $this->dbh->query($sql);
+        while($package = $result->fetchArray())
+        {
+            echo "$package[name]\t$package[version]\t$package[desc]\t$package[maintainer]\n";
+        }
+    }
+
+    /**
+     * View a package.
+     * 
+     * @param  string    $package 
+     * @access public
+     * @return void
+     */
+    public function view($package)
+    {
+        if(empty($package)) die("Please input the package name.\n");
+
+        $sql     = "SELECT * FROM package WHERE name = '$package'";
+        $result  = $this->dbh->query($sql);
+        $package = $result->fetchArray();
+        echo "Name:$package[name]\nVersion:$package[version]\nDesc:$package[desc]\nMaintainer:$package[maintainer]\n\n";
+
+        $sql    = "SELECT * FROM file WHERE package = '$package[name]'";
+        $result = $this->dbh->query($sql);
+        while($file = $result->fetchArray())
+        {
+            echo "$file[path]\t$file[mode]\t$file[md5]\n";
+        }
+    }
+
+    /**
+     * Remove package.
+     * 
+     * @param  string    $package 
+     * @access public
+     * @return void
+     */
+    public function remove($package)
+    {
+        if(empty($package)) die("Please input the package name.\n");
+        echo "Are you sure to remove the package $package?(y/n)";
+        if(trim(fgets(STDIN)) == 'n') die();
+
+        $dirs   = array();
+        $sql    = "SELECT * FROM file WHERE package = '$package'";
+        $result = $this->dbh->query($sql);
+        while($file = $result->fetchArray())
+        {
+            $installedFile = $this->installDir . $file['path'];
+            $md5 = md5_file($installedFile); 
+
+            /* Backup modified files. */
+            if(!is_link($installedFile) and $md5 != $file['md5'])
+            {
+                echo `mv -v $installedFile $installedFile.bak`;
+                continue;
+            }
+
+            echo `rm -fv $installedFile`;           // Remove files.
+            $dirs[dirname($installedFile)] = '';    // Store the directories.
+        }
+
+        /* Try to remove empty directories. */
+        $dirs = array_keys($dirs);
+        rsort($dirs);
+        foreach($dirs as $dir) $this->rmdir($dir);
+
+        /* Delete database records. */
+        $sql    = "DELETE FROM package WHERE name = '$package';";
+        $sql   .= "DELETE FROM file WHERE package = '$package';";
+        $result = $this->dbh->exec($sql);
+
+        echo "Package $package removed.\n";
+    }
+
+    /**
+     * Remove a dir recursively.
+     * 
+     * @param  string    $path 
+     * @access public
+     * @return void
+     */
+    public function rmdir($path)
+    {
+        if(!@rmdir($path)) return false;
+        return $this->rmdir(dirname($path));
+    }
+
+    /**
+     * Parse depends.
+     * 
+     * @param  string    $depends 
+     * @access public
+     * @return void
+     */
+    public function parseDepends($depends)
+    {
+    }
+
+
+    /**
+     * Print the help info.
+     * 
+     * @access public
+     * @return void
+     */
+    public function help()
+    {
+        echo <<<EOT
+pkg is a package manger for zentaomos.
+
+ -l   --list list  list all packages.
+ -v   --view view  view a package.
+
+EOT;
+    }
+ 
+    /**
+     * Get options from cmd.
+     * 
+     * @access public
+     * @return void
+     */
+    public function getOptions()
+    {
+        global $argc, $argv;
+
+        $mode   = 'help';
+        $params = array();
+
+        if($argc > 1)
+        {
+            switch($argv[1])
+            {  
+                           case '--init':    case 'init':     $mode  = 'init';     break;
+                case '-i': case '--install': case 'install':  $mode  = 'install';  break;
+                case '-r': case '--remove':  case 'remove':   $mode  = 'remove';   break;
+                case '-l': case '--list':    case 'list':     $mode  = 'browse';   break;
+                case '-v': case '--view':    case 'view':     $mode  = 'view';     break;
+                case '-h': case '--help':    case 'help':     $mode  = 'help';     break;
+                case '-w': case '--watch':   case 'watch':    $mode  = 'watch';    break;
+                case '-b': case '--build':   case 'build':    $mode  = 'build';    break;
+            }
+
+            $params = array_slice($argv, 2);
+        }
+
+        $this->mode   = $mode;
+        $this->params = count($params) == 1 ? $params[0] : $params;
+    }
+}

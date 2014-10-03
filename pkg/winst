@@ -1,0 +1,48 @@
+#!/bin/bash
+#
+# This shell is used to monitor the files when install a software by make install or other commands.
+#
+# @author chunsheng wang<chunsheng@cnezsoft.com>
+
+# Judge inotifywait tool exists or not.
+which inotifywait > /dev/null
+if [ $? -ne 0 ]; then
+  echo 'No inotifywait. Please install inotify-tools, for debian or ubuntun run apt-get install inotify-tools.';
+  exit 1
+fi
+
+# Judge the params, must give watcher.
+if [ $# -lt 1 ]; then
+  echo './winst watcher'
+  exit 1
+fi
+watcher=$1
+notifier=$PWD/.notifier;
+
+# Watch the watcher
+inotifywait -mrq --event create,modify,move --format '%w %e %f' \
+  --exclude '(/mnt/lfs/sources/|/mnt/lfs/tools|/mnt/lfs/tmp/|/mnt/lfs/root/|/mnt/lfs/dev/|/mnt/lfs/run/|aux-cache|ld.so.cache)' $watcher |\
+while read dir event file ; do
+
+  # Get the logfile name from the notifier file by "pkg watch" command.
+  logfile=`cat $notifier`;
+  if [  $logfile ]; then
+
+    # Get file installed.
+    fileinstalled=$dir$file
+    fileinstalled=${fileinstalled/$watcher/}
+
+    # If event is ISDIR, ignore it.
+    echo $event |grep -q 'ISDIR'
+    if [ $? -eq 0 ]; then
+      echo `date "+%H:%M:%S"` $fileinstalled is dir, ignored.
+      continue;
+    fi
+
+    # Append file to the logfile.
+    echo $fileinstalled >> $logfile
+    echo `date "+%H:%M:%S"` $fileinstalled $event
+
+  fi
+
+done

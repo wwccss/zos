@@ -1,0 +1,256 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content=
+    "application/xhtml+xml; charset=iso-8859-1" />
+    <title>
+      6.43.&nbsp;Flex-2.5.37
+    </title>
+    <link rel="stylesheet" href="../stylesheets/lfs.css" type="text/css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.73.2" />
+    <link rel="stylesheet" href="../stylesheets/lfs-print.css" type=
+    "text/css" media="print" />
+  </head>
+  <body class="lfs" id="lfs-7.3">
+    <div class="navheader">
+      <h4>
+        Linux From Scratch - Version 7.3
+      </h4>
+      <h3>
+        Chapter&nbsp;6.&nbsp;Installing Basic System Software
+      </h3>
+      <ul>
+        <li class="prev">
+          <a accesskey="p" href="findutils.html" title=
+          "Findutils-4.4.2">Prev</a>
+          <p>
+            Findutils-4.4.2
+          </p>
+        </li>
+        <li class="next">
+          <a accesskey="n" href="gettext.html" title=
+          "Gettext-0.18.2">Next</a>
+          <p>
+            Gettext-0.18.2
+          </p>
+        </li>
+        <li class="up">
+          <a accesskey="u" href="chapter06.html" title=
+          "Chapter&nbsp;6.&nbsp;Installing Basic System Software">Up</a>
+        </li>
+        <li class="home">
+          <a accesskey="h" href="../index.html" title=
+          "Linux From Scratch - Version 7.3">Home</a>
+        </li>
+      </ul>
+    </div>
+    <div class="wrap" lang="en" xml:lang="en">
+      <h1 class="sect1">
+        <a id="ch-system-flex" name="ch-system-flex"></a>6.43. Flex-2.5.37
+      </h1>
+      <div class="package" lang="en" xml:lang="en">
+        <p>
+          The Flex package contains a utility for generating programs that
+          recognize patterns in text.
+        </p>
+        <div class="segmentedlist">
+          <div class="seglistitem">
+            <div class="seg">
+              <strong class="segtitle">Approximate build time:</strong>
+              <span class="segbody">0.4 SBU</span>
+            </div>
+            <div class="seg">
+              <strong class="segtitle">Required disk space:</strong>
+              <span class="segbody">39 MB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="installation" lang="en" xml:lang="en">
+        <h2 class="sect2">
+          6.43.1. Installation of Flex
+        </h2>
+        <p>
+          First, fix some regression tests:
+        </p>
+        <pre class="userinput">
+<kbd class="command">patch -Np1 -i ../flex-2.5.37-bison-2.6.1-1.patch</kbd>
+</pre>
+        <p>
+          Prepare Flex for compilation:
+        </p>
+        <pre class="userinput">
+<kbd class="command">./configure --prefix=/usr             \
+            --docdir=/usr/share/doc/flex-2.5.37</kbd>
+</pre>
+        <p>
+          Compile the package:
+        </p>
+        <pre class="userinput">
+<kbd class="command">make</kbd>
+</pre>
+        <p>
+          To test the results (about 0.5 SBU), issue:
+        </p>
+        <pre class="userinput">
+<kbd class="command">make check</kbd>
+</pre>
+        <p>
+          Install the package:
+        </p>
+        <pre class="userinput">
+<kbd class="command">make install</kbd>
+</pre>
+        <p>
+          There are some packages that expect to find the <code class=
+          "filename">lex</code> library in <code class=
+          "filename">/usr/lib</code>. Create a symlink to account for this:
+        </p>
+        <pre class="userinput">
+<kbd class="command">ln -sv libfl.a /usr/lib/libl.a</kbd>
+</pre>
+        <p>
+          A few programs do not know about <span class=
+          "command"><strong>flex</strong></span> yet and try to run its
+          predecessor, <span class="command"><strong>lex</strong></span>. To
+          support those programs, create a wrapper script named <code class=
+          "filename">lex</code> that calls <code class="filename">flex</code>
+          in <span class="command"><strong>lex</strong></span> emulation
+          mode:
+        </p>
+        <pre class="userinput">
+<kbd class="command">cat &gt; /usr/bin/lex &lt;&lt; "EOF"
+<code class="literal">#!/bin/sh
+# Begin /usr/bin/lex
+
+exec /usr/bin/flex -l "$@"
+
+# End /usr/bin/lex</code>
+EOF
+chmod -v 755 /usr/bin/lex</kbd>
+</pre>
+      </div>
+      <div class="content" lang="en" xml:lang="en">
+        <h2 class="sect2">
+          <a id="contents-flex" name="contents-flex"></a>6.43.2. Contents of
+          Flex
+        </h2>
+        <div class="segmentedlist">
+          <div class="seglistitem">
+            <div class="seg">
+              <strong class="segtitle">Installed programs:</strong>
+              <span class="segbody">flex, flex++ (link to flex), and
+              lex</span>
+            </div>
+            <div class="seg">
+              <strong class="segtitle">Installed libraries:</strong>
+              <span class="segbody">libfl.a and libfl_pic.a</span>
+            </div>
+            <div class="seg">
+              <strong class="segtitle">Installed directories:</strong>
+              <span class="segbody">/usr/share/doc/flex-2.5.37</span>
+            </div>
+          </div>
+        </div>
+        <div class="variablelist">
+          <h3>
+            Short Descriptions
+          </h3>
+          <table border="0">
+            <col align="left" valign="top" />
+            <tbody>
+              <tr>
+                <td>
+                  <p>
+                    <a id="flex" name="flex"></a><span class=
+                    "term"><span class=
+                    "command"><strong>flex</strong></span></span>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    A tool for generating programs that recognize patterns in
+                    text; it allows for the versatility to specify the rules
+                    for pattern-finding, eradicating the need to develop a
+                    specialized program
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p>
+                    <a id="flexpp" name="flexpp"></a><span class=
+                    "term"><span class=
+                    "command"><strong>flex++</strong></span></span>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    An extension of flex, is used for generating C++ code and
+                    classes. It is a symbolic link to <span class=
+                    "command"><strong>flex</strong></span>
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p>
+                    <a id="lex" name="lex"></a><span class=
+                    "term"><span class="command"><strong>lex</strong></span></span>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    A script that runs <span class=
+                    "command"><strong>flex</strong></span> in <span class=
+                    "command"><strong>lex</strong></span> emulation mode
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p>
+                    <a id="libfl.a" name="libfl.a"></a><span class=
+                    "term"><code class="filename">libfl.a</code></span>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    The <code class="filename">flex</code> library
+                  </p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <ul>
+        <li class="prev">
+          <a accesskey="p" href="findutils.html" title=
+          "Findutils-4.4.2">Prev</a>
+          <p>
+            Findutils-4.4.2
+          </p>
+        </li>
+        <li class="next">
+          <a accesskey="n" href="gettext.html" title=
+          "Gettext-0.18.2">Next</a>
+          <p>
+            Gettext-0.18.2
+          </p>
+        </li>
+        <li class="up">
+          <a accesskey="u" href="chapter06.html" title=
+          "Chapter&nbsp;6.&nbsp;Installing Basic System Software">Up</a>
+        </li>
+        <li class="home">
+          <a accesskey="h" href="../index.html" title=
+          "Linux From Scratch - Version 7.3">Home</a>
+        </li>
+      </ul>
+    </div>
+  </body>
+</html>
