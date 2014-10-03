@@ -55,3 +55,6 @@ cd ../gcc-build
 
 make
 make install
+
+rm -frv /mnt/lfs/sources/gcc-4.9.1
+rm -frv /mnt/lfs/sourcesgcc-build

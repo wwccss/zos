@@ -1,3 +1,5 @@
+cd $LFS/sources
+tar xvf gcc*.bz2
 cd $LFS/sources/gcc*
 
 mkdir -pv ../gcc-build
@@ -15,3 +17,6 @@ cd ../gcc-build
 
 make 
 make install
+
+rm -frv /mnt/lfs/sources/gcc-4.9.1
+rm -frv /mnt/lfs/sourcesgcc-build

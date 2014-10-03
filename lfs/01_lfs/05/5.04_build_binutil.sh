@@ -15,3 +15,6 @@ cd ../binutils-build
     --disable-werror
 
 time make && make install
+
+rm -frv /mnt/lfs/sources/binutils-2.24
+rm -frv /mnt/lfs/sources/binutils-build
