@@ -17,6 +17,6 @@ SED=sed                       \
      --with-system-zlib
 
 make
-ulimit -s 32768
-make -k check
-../gcc-4.7.2/contrib/test_summary
+#ulimit -s 32768
+#make -k check
+#../gcc-4.7.2/contrib/test_summary
