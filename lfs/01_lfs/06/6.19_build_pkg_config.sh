@@ -2,6 +2,8 @@ cd /sources/
 tar xvf pkg-config*.gz
 cd pkg-config*
 
+pkg watch /mnt/lfs
+
 ./configure --prefix=/usr         \
             --with-internal-glib  \
             --disable-host-tool   \
@@ -9,3 +11,5 @@ cd pkg-config*
 make
 make check
 make install
+
+pkg build /sources/ini/pkg-config.ini winst.log /
