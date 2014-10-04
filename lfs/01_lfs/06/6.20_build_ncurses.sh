@@ -2,6 +2,8 @@ cd /sources/
 tar xvf ncurses*.gz
 cd ncurses*
 
+pkg watch /mnt/lfs
+
 ./configure --prefix=/usr           \
             --mandir=/usr/share/man \
             --with-shared           \
@@ -13,7 +15,7 @@ make
 make install
 
 mv -v /usr/lib/libncursesw.so.5* /lib
-ln -sfv ../../lib/libncursesw.so.5 /usr/lib/libncursesw.so
+ln -sfv ../../lib/$(readlink /usr/lib/libncursesw.so) /usr/lib/libncursesw.so
 
 for lib in ncurses form panel menu ; do
     rm -vf                    /usr/lib/lib${lib}.so
@@ -32,3 +34,5 @@ ln -sfv libncurses.a       /usr/lib/libcurses.a
 
 mkdir -v       /usr/share/doc/ncurses-5.9
 cp -v -R doc/* /usr/share/doc/ncurses-5.9
+
+pkg build /sources/ini/ncurses.ini winst.log /
