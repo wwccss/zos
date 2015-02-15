@@ -1,0 +1,3 @@
+# use this shell to create the list page of all packages.
+# copy the source code of the chapter 6 menu and save them to list.
+grep html list  |awk -F '"' '{print "http:\/\/www.linuxfromscratch.org\/lfs\/view\/stable\/"$2}' > wlist
