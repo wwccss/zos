@@ -12,10 +12,10 @@
     <link rel="stylesheet" href="stylesheets/lfs-print.css" type="text/css"
     media="print" />
   </head>
-  <body class="lfs" id="lfs-7.6-rc1">
+  <body class="lfs" id="lfs-7.6">
     <div class="navheader">
       <h4>
-        Linux From Scratch - Version 7.6-rc1
+        Linux From Scratch - Version 7.6
       </h4>
       <h3>
         Chapter&nbsp;6.&nbsp;Installing Basic System Software
@@ -39,7 +39,7 @@
         </li>
         <li class="home">
           <a accesskey="h" href="../index.html" title=
-          "Linux From Scratch - Version 7.6-rc1">Home</a>
+          "Linux From Scratch - Version 7.6">Home</a>
         </li>
       </ul>
     </div>
@@ -77,8 +77,8 @@
 "command">sed -i 's/if \((code.*))\)/if (\1 \&amp;\&amp; \!DEBUG_INSN_P (insn))/' gcc/sched-deps.c</kbd>
 </pre>
         <p>
-          First fix a problem identified upstream that causes some programs
-          to fail:
+          Now fix another problem identified upstream that causes some
+          programs to fail:
         </p>
         <pre class="userinput">
 <kbd class="command">patch -Np1 -i ../gcc-4.9.1-upstream_fixes-1.patch</kbd>
@@ -106,9 +106,9 @@ cd ../gcc-build</kbd>
         <p>
           Note that for other languages, there are some prerequisites that
           are not yet available. See the <a class="ulink" href=
-          "http://www.linuxfromscratch.org/blfs/view/7.6-rc1/general/gcc.html">
-          BLFS Book</a> for instructions on how to build all of GCC's
-          supported languages.
+          "http://www.linuxfromscratch.org/blfs/view/7.6/general/gcc.html">BLFS
+          Book</a> for instructions on how to build all of GCC's supported
+          languages.
         </p>
         <div class="variablelist">
           <p class="title">
@@ -177,7 +177,7 @@ cd ../gcc-build</kbd>
         </p>
         <p>
           Results can be compared with those located at <a class="ulink"
-          href="http://www.linuxfromscratch.org/lfs/build-logs/7.6-rc1/">http://www.linuxfromscratch.org/lfs/build-logs/7.6-rc1/</a>
+          href="http://www.linuxfromscratch.org/lfs/build-logs/7.6/">http://www.linuxfromscratch.org/lfs/build-logs/7.6/</a>
           and <a class="ulink" href=
           "http://gcc.gnu.org/ml/gcc-testresults/">http://gcc.gnu.org/ml/gcc-testresults/</a>.
         </p>
@@ -734,7 +734,7 @@ mv -v /usr/lib/*gdb.py /usr/share/gdb/auto-load/usr/lib</kbd>
         </li>
         <li class="home">
           <a accesskey="h" href="../index.html" title=
-          "Linux From Scratch - Version 7.6-rc1">Home</a>
+          "Linux From Scratch - Version 7.6">Home</a>
         </li>
       </ul>
     </div>
