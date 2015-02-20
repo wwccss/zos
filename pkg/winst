@@ -19,6 +19,9 @@ fi
 watcher=$1
 notifier=$PWD/.notifier;
 
+# Increase the limit.
+echo 100000000 > /proc/sys/fs/inotify/max_user_watches
+
 # Watch the watcher
 inotifywait -mrq --event create,modify,move --format '%w %e %f' \
   --exclude '(/mnt/lfs/sources/|/mnt/lfs/tools|/mnt/lfs/tmp/|/mnt/lfs/root/|/mnt/lfs/dev/|/mnt/lfs/run/|aux-cache|ld.so.cache)' $watcher |\
@@ -26,7 +29,7 @@ while read dir event file ; do
 
   # Get the logfile name from the notifier file by "pkg watch" command.
   logfile=`cat $notifier`;
-  if [  $logfile ]; then
+  if [ $logfile ]; then
 
     # Get file installed.
     fileinstalled=$dir$file
