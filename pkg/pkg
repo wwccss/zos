@@ -171,7 +171,7 @@ class pkg
     /**
      * Write the logfile name into the notifier file, thus the winst shell can write the files to it.
      *
-     * It's in chroot env when building lfs, pkg was called in chroot, winst wat called out of chroot,
+     * It's in chroot env when building lfs, pkg was called in chroot, winst was called out of chroot,
      * so I need the prefix var to tell winst shell the real path of logfile.
      * 
      * @param  string    $createTable 
