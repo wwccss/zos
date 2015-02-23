@@ -64,14 +64,6 @@ class pkg
     private $installDir;
 
     /**
-     * The notifier
-     * 
-     * @var string   
-     * @access private
-     */
-    private $notifier;
-
-    /**
      * The construct function.
      * 
      * @param  string    $dbFile 
@@ -85,7 +77,8 @@ class pkg
         $this->init();
 
         if($this->mode == 'help')    $this->help();
-        if($this->mode == 'watch')   $this->setNotifier() && $this->watch($this->params);
+        if($this->mode == 'watch')   $this->watch($this->params);
+        if($this->mode == 'savelog') $this->saveLog($this->params);
         if($this->mode == 'build')   $this->setBuildDir() && $this->build($this->params);
         if($this->mode == 'install') $this->install($this->params);
         if($this->mode == 'browse')  $this->browse($this->params);
@@ -157,34 +150,53 @@ class pkg
     }
 
     /**
-     * Set the notifier file.
-     * 
-     * @access public
-     * @return void
-     */
-    public function setNotifier()
-    {
-        $this->notifier = dirname(__FILE__) . '/.notifier';
-        return true;
-    }
-
-    /**
      * Write the logfile name into the notifier file, thus the winst shell can write the files to it.
      *
      * It's in chroot env when building lfs, pkg was called in chroot, winst was called out of chroot,
      * so I need the prefix var to tell winst shell the real path of logfile.
      * 
-     * @param  string    $createTable 
+     * @param  string    $prefix 
      * @access public
      * @return void
      */
     public function watch($prefix)
     {
+        /* Get working dir. */
         $workDir = getcwd() . '/';
-        $inChrootLog  = $workDir . 'winst.log';
-        $outChrootLog = $prefix . $inChrootLog;
-        file_put_contents($this->notifier, $outChrootLog);
-        file_put_contents($inChrootLog, '');
+
+        /* Get the notifer file name and then write the logfile to it. 
+         * Thus the winst shell can get the log filename from the notifier
+         * file and then save log to it..
+         */
+        $notifierFile = dirname(__FILE__) . '/.notifier';
+        $notifierContent = $prefix . $workDir . 'winst.log';
+        file_put_contents($notifierFile, $notifierContent);
+
+        /* Set the winst.log to empty by default. */
+        file_put_contents($workDir . 'winst.log', '');
+    }
+
+    /**
+     * Save winst.log.
+     * 
+     * @param  string    $package 
+     * @access public
+     * @return void
+     */
+    public function saveLog($package)
+    {
+        /* Make sure the logfile is not changed anymore. */
+        $logFile = getcwd() . '/winst.log';
+        $mtime = filemtime($logFile);
+        while(true)
+        {
+            sleep(5);
+            clearstatcache();
+            if(filemtime($logFile) == $mtime) break;
+            $mtime = filemtime($logFile);
+        }
+
+        copy($logFile, dirname(__FILE__) . "/log/$package.log");
     }
 
     /**
@@ -266,16 +278,6 @@ class pkg
      */
     public function getFilesFromLog($logFile, $prefix)
     {
-        /* Make sure the logfile is not changed anymore. */
-        $mtime = filemtime($logFile);
-        while(true)
-        {
-            sleep(5);
-            clearstatcache();
-            if(filemtime($logFile) == $mtime) break;
-            $mtime = filemtime($logFile);
-        }
-
         $files = array();
         $lines = explode("\n", trim(file_get_contents($logFile)));
         foreach($lines as $line)
@@ -568,6 +570,7 @@ EOT;
                 case '-v': case '--view':    case 'view':     $mode  = 'view';     break;
                 case '-h': case '--help':    case 'help':     $mode  = 'help';     break;
                 case '-w': case '--watch':   case 'watch':    $mode  = 'watch';    break;
+                case '-s': case '--savelog': case 'savelog':  $mode  = 'savelog';  break;
                 case '-b': case '--build':   case 'build':    $mode  = 'build';    break;
             }
 
