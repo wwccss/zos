@@ -32,7 +32,4 @@ ln -sfv libncurses.so      /usr/lib/libcurses.so
 ln -sfv libncursesw.a      /usr/lib/libcursesw.a
 ln -sfv libncurses.a       /usr/lib/libcurses.a
 
-mkdir -v       /usr/share/doc/ncurses-5.9
-cp -v -R doc/* /usr/share/doc/ncurses-5.9
-
-pkg build /sources/ini/ncurses.ini winst.log /
+pkg savelog ncurses

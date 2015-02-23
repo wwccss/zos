@@ -9,7 +9,6 @@ pkg watch /mnt/lfs
             --disable-host-tool   \
             --docdir=/usr/share/doc/pkg-config-0.28
 make
-make check
 make install
 
-pkg build /sources/ini/pkg-config.ini winst.log /
+pkg savelog pkg-config

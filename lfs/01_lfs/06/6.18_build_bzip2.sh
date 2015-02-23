@@ -19,4 +19,4 @@ rm -v /usr/bin/{bunzip2,bzcat,bzip2}
 ln -sv bzip2 /bin/bunzip2
 ln -sv bzip2 /bin/bzcat
 
-pkg build /sources/ini/bzip2.ini winst.log /
+pkg savelog bzip2
