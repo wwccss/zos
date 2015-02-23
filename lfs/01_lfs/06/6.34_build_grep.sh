@@ -2,7 +2,10 @@ cd /sources/
 tar xvf grep*.xz 
 cd grep*
 
+pkg watch /mnt/lfs
+
 ./configure --prefix=/usr --bindir=/bin
 make
-make check
 make install
+
+pkg savelog grep
