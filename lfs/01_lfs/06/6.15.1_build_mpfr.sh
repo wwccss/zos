@@ -9,5 +9,4 @@ patch -Np1 -i ../mpfr-3.1.2-upstream_fixes-2.patch
              --docdir=/usr/share/doc/mpfr-3.1.2
 
 make
-make html
 make check
