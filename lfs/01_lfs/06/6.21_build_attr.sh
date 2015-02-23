@@ -16,4 +16,4 @@ chmod -v 755 /usr/lib/libattr.so
 mv -v /usr/lib/libattr.so.* /lib
 ln -sfv ../../lib/$(readlink /usr/lib/libattr.so) /usr/lib/libattr.so
 
-pkg build /sources/ini/attr.ini winst.log /
+pkg savelog attr

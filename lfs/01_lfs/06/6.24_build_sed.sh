@@ -1,11 +1,11 @@
 cd /sources/
-tar jxvf sed*.bz2
+tar xvf sed*.bz2
 cd sed*
+
+pkg watch /mnt/lfs
 
 ./configure --prefix=/usr --bindir=/bin --htmldir=/usr/share/doc/sed-4.2.2
 make
-make html
-make check
 make install
-make -C doc install-html
 
+pkg savelog sed

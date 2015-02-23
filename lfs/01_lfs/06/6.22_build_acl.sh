@@ -20,4 +20,4 @@ chmod -v 755 /usr/lib/libacl.so
 mv -v /usr/lib/libacl.so.* /lib
 ln -sfv ../../lib/$(readlink /usr/lib/libacl.so) /usr/lib/libacl.so
 
-pkg build /sources/ini/acl.ini winst.log /
+pkg savelog acl
