@@ -1,6 +1,8 @@
-cat > /etc/inittab << "EOF"
-# Begin /etc/inittab
+cd /tmp/
+pkg watch /mnt/lfs
 
+# initab file.
+cat > /etc/inittab << "EOF"
 id:3:initdefault:
 
 si::sysinit:/etc/rc.d/init.d/rc S
@@ -23,36 +25,34 @@ su:S016:once:/sbin/sulogin
 4:2345:respawn:/sbin/agetty tty4 9600
 5:2345:respawn:/sbin/agetty tty5 9600
 6:2345:respawn:/sbin/agetty tty6 9600
-
-# End /etc/inittab
 EOF
-cat > /etc/sysconfig/clock << "EOF"
-# Begin /etc/sysconfig/clock
 
-UTC=1
+# clock config file. 
+cat > /etc/sysconfig/clock << "EOF"
+UTC=0
 
 # Set this to any options you might need to give to hwclock,
 # such as machine hardware clock type for Alphas.
 CLOCKPARAMS=
-
-# End /etc/sysconfig/clock
 EOF
+
+# console file.
 cat > /etc/sysconfig/console << "EOF"
-# Begin /etc/sysconfig/console
-
-KEYMAP="pl2"
-FONT="lat2a-16 -m 8859-2"
-
-# End /etc/sysconfig/console
+#KEYMAP=""
+#FONT=""
 EOF
+
+# rc.site file.
+
+cat > /etc/sysconfig/rc.site << "EOF"
 # rc.site
 # Optional parameters for boot scripts.
 
 # Distro Information
 # These values, if specified here, override the defaults
-#DISTRO="Linux From Scratch" # The distro name
-#DISTRO_CONTACT="lfs-dev@linuxfromscratch.org" # Bug report address
-#DISTRO_MINI="LFS" # Short name used in filenames for distro config
+DISTRO="zos" # The distro name
+DISTRO_CONTACT="chunsheng@cnezsoft.com" # Bug report address
+DISTRO_MINI="zos" # Short name used in filenames for distro config
 
 # Define custom colors used in messages printed to the screen
 
@@ -113,14 +113,14 @@ EOF
 #SKIPTMPCLEAN=no
 
 # For setclock
-#UTC=1
+#UTC=0
 #CLOCKPARAMS=
 
 # For consolelog
 #LOGLEVEL=5
 
 # For network
-#HOSTNAME=mylfs
+#HOSTNAME=zos
 
 # Delay between TERM and KILL signals at shutdown
 #KILLDELAY=3
@@ -134,3 +134,6 @@ EOF
 #KEYMAP_CORRECTIONS="euro2"
 #FONT="lat0-16 -m 8859-15"
 #LEGACY_CHARSET=
+EOF
+
+pkg savelog sysvinit-bootscripts

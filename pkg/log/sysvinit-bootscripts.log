@@ -1,0 +1,8 @@
+/etc/inittab
+/etc/inittab
+/etc/sysconfig/clock
+/etc/sysconfig/clock
+/etc/sysconfig/console
+/etc/sysconfig/console
+/etc/sysconfig/rc.site
+/etc/sysconfig/rc.site
