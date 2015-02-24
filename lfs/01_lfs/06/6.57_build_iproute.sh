@@ -2,14 +2,13 @@ cd /sources/
 tar xvf iproute*.xz
 cd iproute*
 
+pkg watch /mnt/lfs
+
 sed -i '/^TARGETS/s@arpd@@g' misc/Makefile
 sed -i /ARPD/d Makefile
 sed -i 's/arpd.8//' man/man8/Makefile
 
-sed -i 's/-Werror//' Makefile
+make
+make DOCDIR=/usr/share/doc/iproute2-3.16.0 install
 
-make DESTDIR=
-
-make DESTDIR=              \
-     MANDIR=/usr/share/man \
-     DOCDIR=/usr/share/doc/iproute2-3.8.0 install
+pkg savelog iproute2
