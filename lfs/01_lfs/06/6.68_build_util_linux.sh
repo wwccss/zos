@@ -2,11 +2,13 @@ cd /sources/
 tar xvf util-linux*.tar.xz
 cd util*
 
-sed -i -e 's@etc/adjtime@var/lib/hwclock/adjtime@g' \
-     $(grep -rl '/etc/adjtime' .)
+pkg watch /mnt/lfs
 
 mkdir -pv /var/lib/hwclock
 
-./configure --disable-su --disable-sulogin --disable-login
+./configure ADJTIME_PATH=/var/lib/hwclock/adjtime \
+              --docdir=/usr/share/doc/util-linx-2.25.1
 make
 make install
+
+pkg savelog util-linux
