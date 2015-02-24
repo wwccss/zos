@@ -1,0 +1,1 @@
+rm -frv /tmp/*
