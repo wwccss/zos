@@ -162,3 +162,5 @@
 /usr/share/locale/zh_CN/LC_MESSAGES/bash.mo
 /usr/share/locale/zh_TW/LC_MESSAGES/bash.mo
 /usr/share/locale/zh_TW/LC_MESSAGES/bash.mo
+/etc/profile
+
