@@ -2,6 +2,9 @@ cd /sources/
 tar xvf sysklogd*.gz
 cd sysklogd*
 
+pkg watch /mnt/lfs
+
+sed -i '/Error loading kernel symbols/{n;n;d}' ksym_mod.c
 make
 make BINDIR=/sbin install
 
@@ -18,3 +21,5 @@ user.* -/var/log/user.log
 
 # End /etc/syslog.conf
 EOF
+
+pkg savelog sysklogd
