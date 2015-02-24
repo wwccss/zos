@@ -1,2 +1,0 @@
-rm -frv $LFS/sources/ini
-cp -frv ~/zentaomos/pkg/ini/ $LFS/sources/
