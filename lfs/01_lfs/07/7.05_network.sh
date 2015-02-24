@@ -28,6 +28,6 @@ cat > /etc/hosts << "EOF"
 EOF
 
 # set hostname.
-echo "HOSTNAME=zos" > /etc/sysconfig/network          
+echo "zos" > /etc/hostname
 
 pkg savelog network-config
