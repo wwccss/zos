@@ -394,3 +394,4 @@
 /lib/libhistory.so.6.3
 /usr/lib/libreadline.so
 /usr/lib/libhistory.so
+/etc/inputrc
