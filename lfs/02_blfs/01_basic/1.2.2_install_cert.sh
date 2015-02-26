@@ -1,11 +1,12 @@
-sudo touch /bin/make-cert.pl
-sudo chown z:z /bin/make-cert.pl
+cd /tmp
+pkg watch /mnt/lfs
 
-cat > /bin/make-cert.pl << "EOF"
+# create the make-cert.pl shell.
+cat > /usr/bin/make-cert.pl << "EOF"
 #!/usr/bin/perl -w
 
 # Used to generate PEM encoded files from Mozilla certdata.txt.
-# Run as ./mkcrt.pl > certificate.crt
+# Run as ./make-cert.pl > certificate.crt
 #
 # Parts of this script courtesy of RedHat (mkcabundle.pl)
 #
@@ -53,14 +54,11 @@ while ( <IN> )
 }
 EOF
 
-chmod +x /bin/make-cert.pl
-sudo chown root:root /bin/make-cert.pl
+chmod +x /usr/bin/make-cert.pl
 
-sudo touch /bin/make-ca.sh
-sudo chown z:z /bin/make-ca.sh
-
-cat > /bin/make-ca.sh << "EOF"
-#!/bin/bash
+# create the make-ca.sh shell.
+cat > /usr/bin/make-ca.sh << "EOF"
+#!/bin/sh
 # Begin make-ca.sh
 # Script to populate OpenSSL's CApath from a bundle of PEM formatted CAs
 #
@@ -91,12 +89,12 @@ VERSION=$(echo $REVISION | cut -f2 -d" ")
 TEMPDIR=$(mktemp -d)
 TRUSTATTRIBUTES="CKA_TRUST_SERVER_AUTH"
 BUNDLE="BLFS-ca-bundle-${VERSION}.crt"
-CONVERTSCRIPT="/bin/make-cert.pl"
+CONVERTSCRIPT="/usr/bin/make-cert.pl"
 SSLDIR="/etc/ssl"
 
 mkdir "${TEMPDIR}/certs"
 
-# Get a list of staring lines for each cert
+# Get a list of starting lines for each cert
 CERTBEGINLIST=$(grep -n "^# Certificate" "${certdata}" | cut -d ":" -f1)
 
 # Get a list of ending lines for each cert
@@ -114,10 +112,10 @@ for certbegin in ${CERTBEGINLIST}; do
   sed -n "${certbegin},${certend}p" "${certdata}" > "${TEMPDIR}/certs/${certbegin}.tmp"
 done
 
-unset CERTBEGINLIST CERTDATA CERTENDLIST certebegin certend
+unset CERTBEGINLIST CERTDATA CERTENDLIST certbegin certend
 
 mkdir -p certs
-rm certs/*      # Make sure the directory is clean
+rm -f certs/*      # Make sure the directory is clean
 
 for tempfile in ${TEMPDIR}/certs/*.tmp; do
   # Make sure that the cert is trusted...
@@ -156,21 +154,17 @@ fi
 cat certs/*.pem >  ${BUNDLE}
 rm -r "${TEMPDIR}"
 EOF
+chmod +x /usr/bin/make-ca.sh
 
-chmod +x /bin/make-ca.sh
-sudo chown root:root /bin/make-ca.sh
-
-sudo touch /bin/remove-expired-certs.sh
-sudo chown z:z /bin/remove-expired-certs.sh
-
-cat > /bin/remove-expired-certs.sh << "EOF"
-#!/bin/bash
-# Begin /bin/remove-expired-certs.sh
+# create the remove-expired-certs.sh
+cat > /usr/bin/remove-expired-certs.sh << "EOF"
+#!/bin/sh
+# Begin /usr/bin/remove-expired-certs.sh
 #
 # Version 20120211
 
 # Make sure the date is parsed correctly on all systems
-function mydate()
+mydate()
 {
   local y=$( echo $1 | cut -d" " -f4 )
   local M=$( echo $1 | cut -d" " -f1 )
@@ -219,23 +213,26 @@ for cert in $certs; do
 done
 EOF
 
-chmod +x /bin/remove-expired-certs.sh
-sudo chown root:root /bin/remove-expired-certs.sh
+chmod +x /usr/bin/remove-expired-certs.sh
 
-certhost='http://mxr.mozilla.org'                        &&
-certdir='/mozilla/source/security/nss/lib/ckfw/builtins' &&
-url="$certhost$certdir/certdata.txt?raw=1"               &&
+# download certdata file.
+URL=http://anduin.linuxfromscratch.org/sources/other/certdata.txt &&
+rm -f certdata.txt &&
+wget $URL          &&
+make-ca.sh         &&
+remove-expired-certs.sh certs &&
+unset URL
 
-wget --output-document certdata.txt $url &&
-unset certhost certdir url               &&
-make-ca.sh                               &&
-remove-expired-certs.sh certs
-
-SSLDIR=/etc/ssl                                     	 &&
-sudo install -d ${SSLDIR}/certs                          &&
-sudo cp -v certs/*.pem ${SSLDIR}/certs                   &&
-sudo c_rehash                                            &&
-sudo install BLFS-ca-bundle*.crt ${SSLDIR}/ca-bundle.crt &&
+# create cert files.
+SSLDIR=/etc/ssl                                              &&
+install -d ${SSLDIR}/certs                                   &&
+cp -v certs/*.pem ${SSLDIR}/certs                            &&
+c_rehash                                                     &&
+install BLFS-ca-bundle*.crt ${SSLDIR}/ca-bundle.crt          &&
+ln -sfv ../ca-bundle.crt ${SSLDIR}/certs/ca-certificates.crt &&
 unset SSLDIR
 
+# remove temp files.
 rm -r certs BLFS-ca-bundle*
+
+pkg savelog ca-certs
