@@ -1,1 +1,1 @@
-you should run this in the lfs sytem.
+to make packages by pkg and winst, run this shells like lfs chapter 6.
