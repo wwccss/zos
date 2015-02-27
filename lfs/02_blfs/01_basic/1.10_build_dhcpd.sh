@@ -1,19 +1,19 @@
+pwd=`pwd`
+
 cd /sources/blfs
 tar xvf dhcpcd*.tar.bz2
 cd dhcp*
 
+pkg watch /mnt/lfs
+
 ./configure --libexecdir=/lib/dhcpcd \
-            --dbdir=/run             \
-            --sysconfdir=/etc &&
+              --dbdir=/var/tmp         &&
 make
 
-sudo make install
-
-sudo sed -i "s;/var/lib;/run;g" dhcpcd-hooks/50-dhcpcd-compat &&
-sudo install -v -m 644 dhcpcd-hooks/50-dhcpcd-compat /lib/dhcpcd/dhcpcd-hooks/
+make install
 
 cd ../blfs-boot*
-sudo make install-service-dhcpcd
+make install-service-dhcpcd
 
 cat > ifconfig << "EOF"
 ONBOOT="yes"
@@ -24,7 +24,10 @@ DHCP_STOP="-k"
 EOF
 
 ifconfig=`ls /etc/sysconfig/ifconfig*`
-sudo mv ifconfig $ifconfig
-sudo cp  -v ../../../bin/setnic /etc/init.d/
+mv ifconfig $ifconfig
+cp -v $pwd/setnic /etc/init.d/
 cd /etc/rc.d/rc3.d/
-sudo ln -s ../../init.d/setnic ./S15setnic
+ln -s ../../init.d/setnic ./S15setnic
+
+cd /sources/blfs/dhcp*
+pkg savelog dhcpcd
