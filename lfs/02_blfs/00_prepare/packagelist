@@ -20,6 +20,7 @@ http://anduin.linuxfromscratch.org/sources/BLFS/7.6/l/libxml2-2.9.1.tar.gz
 http://anduin.linuxfromscratch.org/sources/BLFS/7.6/m/mysql-5.6.16-embedded_library_shared-1.patch
 http://anduin.linuxfromscratch.org/sources/BLFS/7.6/m/mysql-5.6.16.tar.gz
 http://anduin.linuxfromscratch.org/sources/BLFS/7.6/n/net-tools-CVS_20101030.tar.gz
+http://www.linuxfromscratch.org/patches/blfs/7.6/net-tools-CVS_20101030-remove_dups-1.patch
 http://anduin.linuxfromscratch.org/sources/BLFS/7.6/n/ntp-4.2.6p5.tar.gz
 http://anduin.linuxfromscratch.org/sources/BLFS/7.6/o/openldap-2.4.39-blfs_paths-1.patch
 http://anduin.linuxfromscratch.org/sources/BLFS/7.6/o/openldap-2.4.39-ntlm-1.patch
