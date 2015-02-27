@@ -25,3 +25,6 @@ EOF
 
 ifconfig=`ls /etc/sysconfig/ifconfig*`
 sudo mv ifconfig $ifconfig
+sudo cp  -v ../../../bin/setnic /etc/init.d/
+cd /etc/rc.d/rc3.d/
+sudo ln -s ../../init.d/setnic ./S15setnic
