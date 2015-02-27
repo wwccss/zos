@@ -15,6 +15,7 @@ pkg watch /mnt/lfs
 make
 make install
 
-echo "%sudo ALL=NOPASSWD: ALL" > /etc/sudoers
+echo "User_Alias ADMIN=z " > /etc/sudoers
+echo "ADMIN  ALL=NOPASSWD: ALL" >> /etc/sudoers
 
 pkg savelog sudo
