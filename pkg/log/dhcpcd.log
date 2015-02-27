@@ -31,3 +31,5 @@
 /usr/share/man/man8/dhcpcd-run-hooks.8
 /usr/share/man/man8/dhcpcd.8
 /usr/share/man/man8/dhcpcd.8
+/etc/init.d/setnic
+/etc/rc.d/rc3.d/S15setnic
