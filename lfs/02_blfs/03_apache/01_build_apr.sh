@@ -1,9 +1,13 @@
 cd /sources/blfs
-tar xvf apr*.tar.bz2
-cd apr*
+tar xvf apr-1.5.1.tar.bz2
+cd apr-1.5.1
 
-./configure --prefix=/usr --disable-static \
+pkg watch /mnt/lfs
+
+./configure --prefix=/usr    \
+  --disable-static \
   --with-installbuilddir=/usr/share/apr-1/build &&
 make
+make install
 
-sudo make install
+pkg savelog apr
