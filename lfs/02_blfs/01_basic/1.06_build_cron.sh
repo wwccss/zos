@@ -22,9 +22,7 @@ make install-cron
 mkdir /var/cron
 touch /var/cron/cron.allow
 touch /var/cron/cron.deny
-chown z:z /var/cron/cron.allow
 echo z > /var/cron/cron.allow
-chown root:root /var/cron/cron.allow
 
 cd -
 pkg savelog vixiecron
