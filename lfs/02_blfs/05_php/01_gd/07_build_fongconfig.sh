@@ -2,12 +2,14 @@ cd /sources/blfs
 tar xvf fontconfig*.tar.bz2
 cd fontconfig*
 
-./configure --prefix=/usr \
-            --sysconfdir=/etc \
-            --localstatedir=/var \
-            --docdir=/usr/share/doc/fontconfig-2.10.93 \
-            --disable-docs \
-            --disable-static &&
-make
+pkg watch /mnt/lfs
 
-sudo make install
+./configure --prefix=/usr        \
+            --sysconfdir=/etc    \
+            --localstatedir=/var \
+            --disable-docs       \
+            --docdir=/usr/share/doc/fontconfig-2.11.1 &&
+make
+make install
+
+pkg savelog fontconfig
