@@ -2,16 +2,17 @@ cd /sources/blfs
 tar xvf freetype*.tar.bz2
 cd freetype*
 
+pkg watch /mnt/lfs
+
 sed -i  -e "/AUX.*.gxvalid/s@^# @@" \
         -e "/AUX.*.otvalid/s@^# @@" \
-        modules.cfg                         &&
+        modules.cfg                        &&
 
 sed -ri -e 's:.*(#.*SUBPIXEL.*) .*:\1:' \
-        include/freetype/config/ftoption.h  &&
+        include/config/ftoption.h          &&
 
-./configure --prefix=/usr --disable-static  &&
+./configure --prefix=/usr --disable-static &&
 make
+make install
 
-sudo make install &&
-sudo install -v -m755 -d /usr/share/doc/freetype-2.5.0.1 &&
-sudo cp -v -R docs/*     /usr/share/doc/freetype-2.5.0.1
+pkg savelog freetype
