@@ -17,8 +17,7 @@ http://anduin.linuxfromscratch.org/sources/BLFS/7.6/l/libjpeg-turbo-1.3.1.tar.gz
 http://anduin.linuxfromscratch.org/sources/BLFS/7.6/l/libpng-1.6.13-apng.patch.gz
 http://anduin.linuxfromscratch.org/sources/BLFS/7.6/l/libpng-1.6.13.tar.xz
 http://anduin.linuxfromscratch.org/sources/BLFS/7.6/l/libxml2-2.9.1.tar.gz
-http://anduin.linuxfromscratch.org/sources/BLFS/7.6/m/mysql-5.6.16-embedded_library_shared-1.patch
-http://anduin.linuxfromscratch.org/sources/BLFS/7.6/m/mysql-5.6.16.tar.gz
+http://anduin.linuxfromscratch.org/sources/BLFS/7.6/m/mariadb-10.0.13.tar.gz
 http://anduin.linuxfromscratch.org/sources/BLFS/7.6/n/net-tools-CVS_20101030.tar.gz
 http://www.linuxfromscratch.org/patches/blfs/7.6/net-tools-CVS_20101030-remove_dups-1.patch
 http://anduin.linuxfromscratch.org/sources/BLFS/7.6/n/ntp-4.2.6p5.tar.gz
