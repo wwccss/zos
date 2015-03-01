@@ -1,53 +1,39 @@
 cd /sources/blfs
-tar xvf mysql*.tar.gz
-cd mysql*
+tar xvf mariadb*.tar.gz
+cd mariadb*
 
-sudo groupadd -g 40 mysql &&
-sudo useradd -c "MySQL Server" -d /srv/mysql -g mysql -s /bin/false -u 40 mysql
+pkg watch /mnt/lfs
 
-patch -Np1 -i ../mysql-5.6.11-embedded_library_shared-1.patch
+groupadd -g 40 mysql &&
+useradd -c "MySQL Server" -d /srv/mysql -g mysql -s /bin/false -u 40 mysql
 
-sed -i "/ADD_SUBDIRECTORY(sql\/share)/d" CMakeLists.txt &&
-sed -i "s/ADD_SUBDIRECTORY(libmysql)/&\\nADD_SUBDIRECTORY(sql\/share)/" CMakeLists.txt &&
-sed -i "s@data/test@\${INSTALL_MYSQLSHAREDIR}@g" sql/CMakeLists.txt &&
-sed -i "s@data/mysql@\${INSTALL_MYSQLTESTDIR}@g" sql/CMakeLists.txt &&
+sed -i "s@data/test@\${INSTALL_MYSQLTESTDIR}@g" sql/CMakeLists.txt &&
+sed -i "s/srv_buf_size/srv_sort_buf_size/" storage/innobase/row/row0log.cc &&
 mkdir build &&
 cd build &&
-cmake -DCMAKE_BUILD_TYPE=Release                    \
-      -DCMAKE_INSTALL_PREFIX=/usr                   \
-      -DINSTALL_DOCDIR=share/doc/mysql              \
-      -DINSTALL_DOCREADMEDIR=share/doc/mysql        \
-      -DINSTALL_INCLUDEDIR=include/mysql            \
-      -DINSTALL_INFODIR=share/info                  \
-      -DINSTALL_MANDIR=share/man                    \
-      -DINSTALL_MYSQLDATADIR=/srv/mysql             \
-      -DINSTALL_MYSQLSHAREDIR=share/mysql           \
-      -DINSTALL_MYSQLTESTDIR=share/mysql/test       \
-      -DINSTALL_PLUGINDIR=lib/mysql/plugin          \
-      -DINSTALL_SBINDIR=sbin                        \
-      -DINSTALL_SCRIPTDIR=bin                       \
-      -DINSTALL_SQLBENCHDIR=share/mysql/bench       \
-      -DINSTALL_SUPPORTFILESDIR=share/mysql         \
-      -DMYSQL_DATADIR=/srv/mysql                    \
-      -DMYSQL_UNIX_ADDR=/run/mysqld/mysqld.sock     \
-      -DSYSCONFDIR=/etc/mysql                       \
-      -DWITH_PARTITION_STORAGE_ENGINE=OFF           \
-      -DWITH_PERFSCHEMA_STORAGE_ENGINE=OFF          \
-      -DWITH_EXTRA_CHARSETS=complex                 \
-      -DWITH_LIBEVENT=system                        \
-      -DWITH_SSL=system                             \
+cmake -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr \
+      -DINSTALL_DOCDIR=share/doc/mysql \
+      -DINSTALL_DOCREADMEDIR=share/doc/mysql \
+      -DINSTALL_MANDIR=share/man \
+      -DINSTALL_MYSQLSHAREDIR=share/mysql \
+      -DINSTALL_MYSQLTESTDIR=share/mysql/test \
+      -DINSTALL_PLUGINDIR=lib/mysql/plugin \
+      -DINSTALL_SBINDIR=sbin \
+      -DINSTALL_SCRIPTDIR=bin \
+      -DINSTALL_SQLBENCHDIR=share/mysql/bench \
+      -DINSTALL_SUPPORTFILESDIR=share/mysql \
+      -DMYSQL_DATADIR=/srv/mysql \
+      -DMYSQL_UNIX_ADDR=/run/mysqld/mysqld.sock \
+      -DWITH_EXTRA_CHARSETS=complex \
+      -DWITH_EMBEDDED_SERVER=ON \
+      -DTOKUDB_OK=0 \
       .. &&
 make
+make install
 
-make test
-
-sudo make install
-sudo install -v -dm 755 /etc/mysql &&
-sudo touch /etc/mysql/my.cnf
-sudo chown z:z /etc/mysql/my.cnf
+install -v -dm 755 /etc/mysql &&
 cat > /etc/mysql/my.cnf << "EOF"
-# Begin /etc/mysql/my.cnf
-
 # The following options will be passed to all MySQL clients
 [client]
 #password       = your_password
@@ -60,7 +46,7 @@ port            = 3306
 socket          = /run/mysqld/mysqld.sock
 datadir         = /srv/mysql
 skip-external-locking
-key_buffer = 16M
+key_buffer_size = 16M
 max_allowed_packet = 1M
 sort_buffer_size = 512K
 net_buffer_length = 16K
@@ -113,17 +99,15 @@ write_buffer = 2M
 
 [mysqlhotcopy]
 interactive-timeout
-
-# End /etc/mysql/my.cnf
 EOF
 
-sudo chown root:root /etc/mysql/my.cnf
+mysql_install_db --basedir=/usr --datadir=/srv/mysql --user=mysql &&
+chown -R mysql:mysql /srv/mysql
 
-sudo mysql_install_db --basedir=/usr --datadir=/srv/mysql --user=mysql &&
-sudo chown -R mysql:mysql /srv/mysql
+install -v -m755 -o mysql -g mysql -d /run/mysqld
 
-sudo install -v -m755 -o mysql -g mysql -d /var/run/mysqld &&
-sudo mysqld_safe --user=mysql 2>&1 >/dev/null &
+cd /sources/blfs/blfs-bootscripts*
+make install-mysql
 
-cd ../blfs-bootscripts*
-sudo make install-mysql
+cd -
+pkg savelog mariadb
