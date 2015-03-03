@@ -2,6 +2,8 @@ cd /sources/blfs
 unzip phpMy*.zip
 cd phpMy*
 
+pkg watch /mnt/lfs
+
 mv locale locale.bak
 mkdir locale
 mv locale.bak/en_GB locale
@@ -10,7 +12,7 @@ rm -fr locale.bak
 
 cat > config.inc.php <<EOT
 <?php
-\$cfg['blowfish_secret']               = 'zentaomos';
+\$cfg['blowfish_secret']               = 'zos';
 \$cfg['Servers'][1]['auth_type']       = 'config';
 \$cfg['Servers'][1]['user']            = 'root';
 \$cfg['Servers'][1]['password']        = ''; 
@@ -23,10 +25,11 @@ EOT
 
 rm -fr examples
 rm -fr js/openlayers
-rm -fr libraries/tcpdf
 rm -fr doc
 rm -fr setup
 rm -fr themes/original
 
-sudo mkdir /srv/phpmyadmin
-sudo cp -rv * /srv/phpmyadmin
+mkdir /srv/phpmyadmin
+cp -rv * /srv/phpmyadmin
+
+pkg savelog phpmyadmin
