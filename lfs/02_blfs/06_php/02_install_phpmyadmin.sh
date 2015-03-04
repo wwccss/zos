@@ -29,7 +29,7 @@ rm -fr doc
 rm -fr setup
 rm -fr themes/original
 
-mkdir /srv/phpmyadmin
-cp -rv * /srv/phpmyadmin
+mkdir /srv/pma
+cp -rv * /srv/pma
 
 pkg savelog phpmyadmin
