@@ -1,3 +1,4 @@
+pwd=`pwd`
 cd /sources/blfs
 tar xvf httpd*.tar.bz2
 cd httpd*
@@ -33,6 +34,10 @@ chown -v -R apache:apache /srv/www
 
 cd ../blfs-bootscripts*
 make install-httpd
+
+# copy modified config files.
+rm -frv /etc/httpd/
+cp -frv $pwd/httpd /etc/httpd
 
 cd -
 pkg savelog apache2

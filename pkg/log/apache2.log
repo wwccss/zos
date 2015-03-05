@@ -1704,3 +1704,17 @@
 /usr/share/man/man8/httpd.8
 /usr/share/man/man8/rotatelogs.8
 /usr/share/man/man8/suexec.8
+/etc/httpd/envvars
+/etc/httpd/envvars
+/etc/httpd/extra/logs.conf
+/etc/httpd/extra/logs.conf
+/etc/httpd/extra/mime.types
+/etc/httpd/extra/mime.types
+/etc/httpd/extra/security.conf
+/etc/httpd/extra/security.conf
+/etc/httpd/extra/front.conf
+/etc/httpd/extra/front.conf
+/etc/httpd/magic
+/etc/httpd/magic
+/etc/httpd/httpd.conf
+/etc/httpd/httpd.conf
