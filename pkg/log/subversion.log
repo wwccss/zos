@@ -323,3 +323,12 @@
 /usr/share/locale/zh_TW/LC_MESSAGES/subversion.mo
 /usr/include/subversion-1/svn-revision.txt
 /usr/include/subversion-1/svn-revision.txt
+/etc/httpd/extra/svn.conf
+/etc/httpd/extra/svn.conf
+/etc/httpd/sites/30.phpmyadmin.conf
+/etc/httpd/sites/30.phpmyadmin.conf
+/srv/auth/svn/authz
+/srv/auth/svn/authz
+/srv/auth/pma/adduser.sh
+/srv/auth/pma/adduser.sh
+/srv/auth/pma/users
