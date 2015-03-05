@@ -1,3 +1,4 @@
+pwd=`pwd`
 cd /sources/blfs
 tar xvf php*.tar.bz2
 cd php*
@@ -39,7 +40,13 @@ pkg watch /mnt/lfs
 make clean
 make
 
-make install &&
-install -v -m644 php.ini-production /etc/php.ini
+# include php module for apache.
+cat > /etc/httpd/extra/php.conf <<EOT
+LoadModule php5_module /usr/lib/httpd/modules/libphp5.so
+AddType application/x-httpd-php .php
+EOT
+
+# php.ini.
+install -v -m644 $pwd/php.ini /etc/php.ini
 
 pkg savelog php55

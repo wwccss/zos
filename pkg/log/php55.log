@@ -3494,3 +3494,7 @@
 /usr/include/php/ext/pdo/php_pdo_driver.h
 /etc/php.ini
 /etc/php.ini
+/etc/httpd/extra/php.conf
+/etc/httpd/extra/php.conf
+/etc/php.ini
+/etc/php.ini
