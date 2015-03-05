@@ -1,11 +1,11 @@
 #!/usr/bin/env php
 <?php
 /**
- * The package manager for zentaomos.
+ * The package manager for zos.
  * 
- * @copyright Copyright 2009-2014 QingDao Nature Easy Soft Network Technology Co,LTD (www.cnezsoft.com)
+ * @copyright Copyright 2009-2015 QingDao Nature Easy Soft Network Technology Co,LTD (www.cnezsoft.com)
  * @author    chunsheng wang <chunsheng@cnezsoft.com> 
- * @package   zentaomos
+ * @package   zos
  * @license   LGPL
  * @version   $Id$
  * @Link      http://www.zentao.net
@@ -214,22 +214,29 @@ class pkg
 
     /**
      * Build a package.
-     * 
-     * @param  mixed    $params    array('package', 'version', 'logFile', 'desc', 'prefix') or just the pkg.ini file.;
+     *
+     * Build a package through a pkg.ini file and pkg.log or just a pkg.ini. 
+     * If the pkg.log given, get files from the log file. If not, read files 
+     * at the same directory of pkg.ini.
+     *
+     * @param  mixed    $params  array(pkg.ini, pkg.log) or just pkg.ini.  
      * @access public
      * @return void
      */
     public function build($params)
     {
-        /* Set params: $> pkg build pkg.ini installwatchlogfile prefix or just $> pkg build pkg.ini.  */
+        /* Get pkg.ini file, set package info. */
         $pkgIniFile = is_array($params) ? realpath($params[0]) : realpath($params);
         if(!is_file($pkgIniFile)) die("the pkg.ini file not exists.\n");
         $package = $this->parsePackageINI($pkgIniFile);
 
+        /* Get files. */
         if(is_array($params))
         {
-            $prefix = rtrim($params[2], '/') . '/';
-            $files  = $this->getFilesFromLog($params[1], $prefix);
+            $pkgLogFile = $params[1];
+            if(!is_file($pkgLogFile)) die("The log file not exists.\n");
+
+            $files = $this->getFilesFromLog($pkgLogFile);
         }
         else
         {
@@ -252,8 +259,14 @@ class pkg
             if(strpos($file, 'ld.so.cache') !== false or 
                strpos($file, 'aux-cache')   !== false) continue;
 
+            /* Skip file not exists. */
+            if(!file_exists($file))
+            {
+                echo "$file not exists, skip.\n";
+                continue;
+            }
+
             /* Copy files. */
-            if($prefix != '/') $file = str_replace($prefix, '', $file);
             $targetFile = $packageDir . $file;
             $targetDir  = dirname($targetFile);
             if(!is_dir($targetDir)) echo `mkdir -v -p $targetDir`;
@@ -269,35 +282,18 @@ class pkg
     }
 
     /**
-     * Get files from the log file. The log file can be logged by installwatch or winst.
+     * Get files from the winst log file.
      * 
      * @param  string    $logFile 
-     * @param  string    $prefix 
      * @access public
      * @return array
      */
-    public function getFilesFromLog($logFile, $prefix)
+    public function getFilesFromLog($logFile)
     {
         $files = array();
         $lines = explode("\n", trim(file_get_contents($logFile)));
-        foreach($lines as $line)
-        {
-            $line = trim($line);
-            if(strpos($line, $prefix) === false) continue;
-
-            /* If there's tab in line, it's installwatchlog, else is winst log. */
-            if(strpos($line, "\t") !== false)
-            {
-                list($result, $action, $file, $extra) = explode("\t", $line);
-                if($action == 'open')    $files[] = $file;
-                if($action == 'symlink') $files[] = $extra;
-            }
-            else
-            {
-                $files[] = $line;
-            }
-        }
-
+        $files = array_unique($lines);
+        foreach($files as $key => $file) if(!file_exists($file)) unset($files[$key]);
         return array_unique($files);
     }
 
@@ -312,12 +308,12 @@ class pkg
     {
         $files = array();
 
-        $path  = dirname(realpath($iniFile));
-        $lines = explode("\n", trim(`find $path/* | sort`));
+        $path  = dirname(realpath($iniFile)) . '/';
+        $lines = explode("\n", trim(`find $path* | sort`));
         foreach($lines as $file)
         {
             if(is_dir($file) or strpos($file, 'pkg.ini') !== false) continue;
-            $files[] = $file;
+            $files[] = str_replace($path, './', $file);    // Remove the prefix
         }
 
         return array_unique($files);
@@ -390,27 +386,32 @@ class pkg
     {
         $ini = new stdclass();
 
+        /* Explode lines by [ to get every section. */
         $lines = file_get_contents($iniFile);
-        $lines = trim($lines, '[');
-        $lines = explode("[", $lines);
-        foreach($lines as $line)
-        {
-            list($section, $content)  = explode("]\n", $line);
+        $lines = ltrim($lines, '[');    // Remove the first [ to make sure explode successful.
+        $sections = explode("[", $lines);
 
-            $section = trim($section);
-            if($section == 'basic')
+        /* Process every section. */
+        foreach($sections as $section)
+        {
+            /* Explode section by ] to get section name and content. */
+            list($sectionName, $sectionContent)  = explode("]", $section);
+
+            $sectionName = trim($sectionName);
+            if($sectionName == 'basic')
             {
-                $content = parse_ini_string(trim($content));
-                foreach($content as $key => $value) $ini->$key = $value;
+                $sectionContent = parse_ini_string(trim($sectionContent));
+                foreach($sectionContent as $key => $value) $ini->$key = $value;
             }
             else
             {
-                $ini->$section = trim($content);
+                $ini->$sectionName = trim($sectionContent);
             }
         }
 
+        /* Set keys undefined in the ini file. */
         $keys = array('maintainer', 'preinstall', 'postinstall', 'preuninstall', 'postuninstall', 'depends');
-        foreach($keys as $key) if(!isset($ini->$key)) $ini->key = '';
+        foreach($keys as $key) if(!isset($ini->$key)) $ini->$key = '';
 
         return $ini;
     }
