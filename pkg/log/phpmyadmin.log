@@ -1153,3 +1153,8 @@
 /srv/pma/view_operations.php
 /srv/pma/webapp.php
 /srv/pma/webapp.php
+/etc/httpd/sites/20.phpmyadmin.conf
+/etc/httpd/sites/20.phpmyadmin.conf
+/srv/auth/pma/adduser.sh
+/srv/auth/pma/adduser.sh
+/srv/auth/pma/users

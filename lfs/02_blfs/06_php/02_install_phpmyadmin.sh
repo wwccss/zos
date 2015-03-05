@@ -32,4 +32,25 @@ rm -fr themes/original
 mkdir /srv/pma
 cp -rv * /srv/pma
 
+# create phpMyAdmin files for apache.
+cat > /etc/httpd/sites/20.phpmyadmin.conf <<EOT
+alias /pma "/srv/pma"
+<Directory /srv/pma>
+  AuthName 'phpMyAdmin(run /srv/auth/pma/adduser.sh to add user.)'
+  AuthType Basic
+  AuthUserFile /srv/auth/pma/users
+  require valid-user
+</Directory>
+EOT
+
+# Set auth files.
+mkdir -pv /srv/auth/pma/
+touch /srv/auth/pma/users
+cat > /srv/auth/pma/adduser.sh <<EOT
+echo "This tool is used to add user for phpMyAdmin";
+read -p "Account: " account
+read -s -p "Password: " password
+htpasswd -b users $account $password
+EOT
+
 pkg savelog phpmyadmin
