@@ -301,10 +301,11 @@ class pkg
      * Give a pkg ini file and get files in it's directoy.
      * 
      * @param  string    $iniFile 
+     * @param  bool      $removePrefix 
      * @access public
      * @return array
      */
-    public function getFilesByPackageINI($iniFile)
+    public function getFilesByPackageINI($iniFile, $removePrefix = true)
     {
         $files = array();
 
@@ -313,7 +314,8 @@ class pkg
         foreach($lines as $file)
         {
             if(is_dir($file) or strpos($file, 'pkg.ini') !== false) continue;
-            $files[] = str_replace($path, './', $file);    // Remove the prefix
+            if($removePrefix) $file = str_replace($path, './', $file);
+            $files[] = $file;
         }
 
         return array_unique($files);
@@ -351,7 +353,7 @@ class pkg
         $this->dbh->exec($sql);
 
         /* Get files, copy them and then insert into file table. */
-        $files = $this->getFilesByPackageINI($pkgINI);
+        $files = $this->getFilesByPackageINI($pkgINI, $removePrefix = false);
         foreach($files as $file)
         {
             /* Copy files. */
