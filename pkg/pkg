@@ -267,10 +267,7 @@ class pkg
             }
 
             /* Copy files. */
-            $targetFile = $packageDir . $file;
-            $targetDir  = dirname($targetFile);
-            if(!is_dir($targetDir)) echo `mkdir -v -p $targetDir`;
-            echo `cp -av $file $targetFile`;
+            echo `cp --parents -av $file $packageDir/`;    // Use --parents param to create parents directires.
         }
 
         /* Copy pkg.ini file. */
@@ -301,11 +298,10 @@ class pkg
      * Give a pkg ini file and get files in it's directoy.
      * 
      * @param  string    $iniFile 
-     * @param  bool      $removePrefix 
      * @access public
      * @return array
      */
-    public function getFilesByPackageINI($iniFile, $removePrefix = true)
+    public function getFilesByPackageINI($iniFile)
     {
         $files = array();
 
@@ -314,7 +310,7 @@ class pkg
         foreach($lines as $file)
         {
             if(is_dir($file) or strpos($file, 'pkg.ini') !== false) continue;
-            if($removePrefix) $file = str_replace($path, './', $file);
+            $file = str_replace($path, './', $file);    // Remove the prefix.
             $files[] = $file;
         }
 
@@ -336,14 +332,17 @@ class pkg
         $packageTar  = realpath($package);
         $packageName = basename($package, '.tar.gz');
         $temp = '/tmp/pkg.' . uniqid() . '/';
-        `mkdir $temp && cd $temp && tar xvpf $packageTar`;
+        echo `mkdir $temp && cd $temp && tar xvpf $packageTar`;
+
+        /* Change to the package directory extracted. */
+        chdir($temp . $packageName);
 
         /* Get package ini file and parse it. */
         $pkgINI = $temp . $packageName . '/pkg.ini';
         $package = $this->parsePackageINI($pkgINI);
 
         /* Excute the preinstall shell. */
-        echo `$package->preinstall`;
+        if($package->preinstall) echo `$package->preinstall`;
 
         /* Save into package table. */
         $sql  = "DELETE FROM package WHERE    name = '$package->name' AND version = '$package->version';";
@@ -353,28 +352,27 @@ class pkg
         $this->dbh->exec($sql);
 
         /* Get files, copy them and then insert into file table. */
-        $files = $this->getFilesByPackageINI($pkgINI, $removePrefix = false);
+        $files = $this->getFilesByPackageINI($pkgINI);
         foreach($files as $file)
         {
             /* Copy files. */
-            $targetFile = '/tmp/test' . str_replace(dirname($pkgINI), '', $file);
-            $targetDir  = dirname($targetFile);
-            if(!is_dir($targetDir)) `mkdir -v -p $targetDir`;
-            `cp -av $file $targetFile`;
+            echo `cp --parents -av $file /tmp/test/`;
 
             /* Get mode and md5, save into table. */
-            $mode = substr(sprintf('%o', fileperms($file)), -4);
-            $md5  = md5_file($file);
-            $path = str_replace(dirname($pkgINI), '', $file);
-            $sql  = "INSERT INTO file (`package`, `version`, `path`, `mode`, `md5`) VALUES('$package->name', '$package->version', '$path', '$mode', '$md5')";
+            $path  = ltrim($file, '.');
+            $mode  = substr(sprintf('%o', fileperms($file)), -4);
+            $owner = fileowner($file);
+            $md5   = md5_file($file);
+            $sql   = "INSERT INTO file (`package`, `version`, `path`, `owner`, `mode`, `md5`) 
+                      VALUES('$package->name', '$package->version', '$path', '$owner', '$mode', '$md5')";
             $this->dbh->exec($sql);
         }
 
         /* Remove the temp directoy. */
-        `rm -fr $temp`;
+        echo `rm -fr $temp`;
 
         /* Excute the postinstall shell. */
-        echo `$package->postinstall`;
+        if($package->postinstall) echo `$package->postinstall`;
     }
 
     /**
@@ -458,7 +456,7 @@ class pkg
         $result = $this->dbh->query($sql);
         while($file = $result->fetchArray())
         {
-            echo "$file[path]\t$file[mode]\t$file[md5]\n";
+            echo "$file[path]\t$file[owner]\t$file[mode]\t$file[md5]\n";
         }
     }
 
