@@ -1,0 +1,15 @@
+#!/usr/bin/env php
+<?php
+$iniFiles = glob('./ini/*');
+foreach($iniFiles as $iniFile)
+{
+    $packageName = basename($iniFile, '.ini');
+    $logFile = "./log/$packageName.log";
+    if(!file_exists($logFile))
+    {
+        echo "$packageName log file not found.\n";
+        continue;
+    }
+
+    echo `pkg build $iniFile $logFile`;
+}
