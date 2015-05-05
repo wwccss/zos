@@ -1,5 +1,8 @@
 #!/usr/bin/env php
 <?php
+/**
+ * This shell is used to batch build packages after build lfs system.  
+ */
 $iniFiles = glob('./ini/*');
 foreach($iniFiles as $iniFile)
 {
