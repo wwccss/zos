@@ -320,12 +320,24 @@ class pkg
     /**
      * Install a package.
      * 
-     * @param  string    $package
+     * @param  mixed    $params    just the package filename or array(packagename, onlydb)
      * @access public
      * @return void
      */
-    public function install($package)
+    public function install($params)
     {
+        /* Set params. */
+        if(is_array($params))
+        {
+            $package = $params[0];
+            $onlyDB  = $params[1];
+        }
+        else
+        {
+            $package = $params;
+            $onlyDB  = false;
+        }
+
         if(!is_file($package)) die("$package not exists\n");
 
         /* Extract files. */
@@ -356,7 +368,7 @@ class pkg
         foreach($files as $file)
         {
             /* Copy files. */
-            echo `cp --parents -av $file $this->installDir`;
+            if(!$onlyDB) echo `cp --parents -av $file $this->installDir`;
 
             /* Get mode and md5, save into table. */
             $path  = ltrim($file, '.');
@@ -447,16 +459,32 @@ class pkg
     {
         if(empty($package)) die("Please input the package name.\n");
 
+        /* Get package info. */
         $sql     = "SELECT * FROM package WHERE name = '$package'";
         $result  = $this->dbh->query($sql);
         $package = $result->fetchArray();
         echo "Name:$package[name]\nVersion:$package[version]\nDesc:$package[desc]\nMaintainer:$package[maintainer]\n\n";
 
+        /* Get files. */
+        $files  = array();
+        $max    = 0;
         $sql    = "SELECT * FROM file WHERE package = '$package[name]'";
         $result = $this->dbh->query($sql);
         while($file = $result->fetchArray())
         {
-            echo "$file[path]\t$file[owner]\t$file[mode]\t$file[md5]\n";
+            $files[] = $file;
+
+            /* Compute the max length of file name. */
+            $length = strlen($file['path']);
+            if($length > $max) $max = $length;
+
+        }
+
+        /* Print files. */
+        echo str_pad('file', $max) . "\towner\tmode\tmd5\n";
+        foreach($files as $file)
+        {
+            echo str_pad($file['path'], $max) . "\t$file[owner]\t$file[mode]\t$file[md5]\n";
         }
     }
 
