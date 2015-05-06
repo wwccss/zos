@@ -356,7 +356,7 @@ class pkg
         foreach($files as $file)
         {
             /* Copy files. */
-            echo `cp --parents -av $file /tmp/test/`;
+            echo `cp --parents -av $file $this->installDir`;
 
             /* Get mode and md5, save into table. */
             $path  = ltrim($file, '.');
