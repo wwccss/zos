@@ -352,6 +352,7 @@ class pkg
         /* Get package ini file and parse it. */
         $pkgINI = $temp . $packageName . '/pkg.ini';
         $package = $this->parsePackageINI($pkgINI);
+        foreach($package as $key => $value) $package->$key = sqlite3::escapeString($value);
 
         /* Excute the preinstall shell. */
         if($package->preinstall) echo `$package->preinstall`;
@@ -441,10 +442,31 @@ class pkg
         if(!empty($key)) $sql = "SELECT * FROM package WHERE name LIKE '%$key%' ORDER BY name";
         if(empty($key))  $sql = "SELECT * FROM package ORDER BY name";
 
+        $packages   = array();
+        $nameMax    = 0;
+        $versionMax = 0;
         $result = $this->dbh->query($sql);
         while($package = $result->fetchArray())
         {
-            echo "$package[name]\t$package[version]\t$package[desc]\t$package[maintainer]\n";
+            $packages[] = $package;
+
+            /* Compute the max length of name and version. */
+            $nameLength    = strlen($package['name']);
+            $versionLength = strlen($package['version']);
+            if($nameLength > $nameMax) $nameMax = $nameLength;
+            if($versionLength > $versionMax) $versionMax = $versionLength;
+        }
+
+        /* Get screen width. */
+        $screenWidth = `tput cols`;
+        if(!$screenWidth) $screenWidth = 100;
+
+        /* Print packages. */
+        foreach($packages as $package)
+        {
+            $shortDesc  = substr($package['desc'], 0, $screenWidth - $nameMax - $versionMax - 10);
+            $shortDesc .= $shortDesc != $package['desc'] ? ' ...' : '';
+            echo str_pad($package['name'], $nameMax) . ' ' . str_pad($package['version'], $versionMax) . ' ' . "$shortDesc\n";
         }
     }
 
