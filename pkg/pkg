@@ -94,8 +94,8 @@ class pkg
      */
     public function setInstallDir()
     {
-        $this->installDir = '/tmp/test/';
-        if(!is_dir($this->installDir)) mkdir($this->installDir);
+        $this->installDir = '/';
+        //if(!is_dir($this->installDir)) mkdir($this->installDir);
     }
 
     /**
@@ -414,7 +414,7 @@ class pkg
             if($sectionName == 'basic')
             {
                 $sectionContent = parse_ini_string(trim($sectionContent));
-                foreach($sectionContent as $key => $value) $ini->$key = $value;
+                foreach($sectionContent as $key => $value) $ini->$key = trim($value);
             }
             else
             {
@@ -529,9 +529,10 @@ class pkg
         while($file = $result->fetchArray())
         {
             $installedFile = $this->installDir . $file['path'];
-            $md5 = md5_file($installedFile); 
+            if(!file_exists($installedFile)) continue;
 
             /* Backup modified files. */
+            $md5 = md5_file($installedFile); 
             if(!is_link($installedFile) and $md5 != $file['md5'])
             {
                 echo `mv -v $installedFile $installedFile.bak`;
@@ -589,10 +590,11 @@ class pkg
     public function help()
     {
         echo <<<EOT
-pkg is a package manger for zentaomos.
+pkg is the package manger for zentaomos.
 
- -l   --list list  list all packages.
- -v   --view view  view a package.
+ -l   --list   list    list all packages.
+ -v   --view   view    view a package.
+ -r   --remove remove  remove a package.
 
 EOT;
     }
