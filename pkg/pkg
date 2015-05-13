@@ -94,8 +94,8 @@ class pkg
      */
     public function setInstallDir()
     {
-        $this->installDir = '/';
-        //if(!is_dir($this->installDir)) mkdir($this->installDir);
+        $this->installDir = '/tmp/test/';
+        if(!is_dir($this->installDir)) mkdir($this->installDir);
     }
 
     /**
@@ -139,7 +139,7 @@ class pkg
     {
         if(!$createTable) return false;
 
-        $sql  = "CREATE TABLE package(id INTEGER PRIMARY KEY, name TEXT, version TEXT, desc TEXT, maintainer TEXT, depends TEXT,";
+        $sql  = "CREATE TABLE package(id INTEGER PRIMARY KEY, name TEXT, version TEXT, mode TEXT, desc TEXT, maintainer TEXT, depends TEXT,";
         $sql .= "preUninstall TEXT, postUninstall TEXT);";
         $sql .= "CREATE INDEX pkg_index on package(name, version);";
         $sql .= "CREATE TABLE file(id INTEGER PRIMARY KEY, package TEXT, version TEXT, path TEXT, owner TEXT, mode TEXT, md5 TEXT);";
@@ -219,7 +219,7 @@ class pkg
      * If the pkg.log given, get files from the log file. If not, read files 
      * at the same directory of pkg.ini.
      *
-     * @param  mixed    $params  array(pkg.ini, pkg.log) or just pkg.ini.  
+     * @param  mixed    $params  array(pkg.ini, pkg.log) or array($pkg.ini, pkg.log, mode=full|lite) or just pkg.ini.  
      * @access public
      * @return void
      */
@@ -230,13 +230,16 @@ class pkg
         if(!is_file($pkgIniFile)) die("the pkg.ini file not exists.\n");
         $package = $this->parsePackageINI($pkgIniFile);
 
+        /* Set model, the default mode is full. full|lite. */
+        $mode = isset($params[2]) ? $params[2] : 'full';
+
         /* Get files. */
         if(is_array($params))
         {
             $pkgLogFile = $params[1];
             if(!is_file($pkgLogFile)) die("The log file not exists.\n");
 
-            $files = $this->getFilesFromLog($pkgLogFile);
+            $files = $this->getFilesFromLog($pkgLogFile, $mode);
         }
         else
         {
@@ -246,7 +249,7 @@ class pkg
 
         /* Set package vars and init the directory. */
         $packageDir = $this->buildDir . $package->name . ".$package->version/";
-        $packageTar = "$this->buildDir{$package->name}.{$package->version}.tar.gz";
+        $packageTar = "$this->buildDir{$package->name}.{$package->version}.{$mode}.tar.gz";
 
         if(!is_dir($packageDir)) echo `mkdir -v -p $packageDir`;
         if(is_dir($packageDir))  echo `rm -fr $packageDir*`;
@@ -271,7 +274,16 @@ class pkg
         }
 
         /* Copy pkg.ini file. */
-        `cp -v $pkgIniFile {$packageDir}pkg.ini`;
+        $iniContents = file_get_contents($pkgIniFile);
+
+        /* If mode not is full, insert the section into the pkg.ini file. */
+        if($mode != 'full')
+        {
+            $iniLines = explode("\n", $iniContents);
+            $iniLines[1] .= "\nmode=\"$mode\"";
+            $iniContents = join("\n", $iniLines);
+        }
+        file_put_contents("{$packageDir}pkg.ini", $iniContents);
 
         /* Make the tar package and remove the tmp files. */
         echo `cd $this->buildDir && tar cpzvf $packageTar $package->name.$package->version`;
@@ -282,15 +294,27 @@ class pkg
      * Get files from the winst log file.
      * 
      * @param  string    $logFile 
+     * @param  string    $mode     full|lite 
      * @access public
      * @return array
      */
-    public function getFilesFromLog($logFile)
+    public function getFilesFromLog($logFile, $mode = 'full')
     {
         $files = array();
         $lines = explode("\n", trim(file_get_contents($logFile)));
         $files = array_unique($lines);
-        foreach($files as $key => $file) if(!file_exists($file)) unset($files[$key]);
+        foreach($files as $key => $file)
+        {
+            if(!file_exists($file)) unset($files[$key]);
+
+            /* If the mode is lite, don't include the doc files. */
+            if($mode == 'lite') 
+            {
+                if(strpos($file, '/usr/share/man')  !== false) unset($files[$key]);
+                if(strpos($file, '/usr/share/doc')  !== false) unset($files[$key]);
+                if(strpos($file, '/usr/share/info') !== false) unset($files[$key]);
+            }
+        }
         return array_unique($files);
     }
 
@@ -343,6 +367,9 @@ class pkg
         /* Extract files. */
         $packageTar  = realpath($package);
         $packageName = basename($package, '.tar.gz');
+        $packageName = basename($packageName, '.full');
+        $packageName = basename($packageName, '.lite');
+
         $temp = '/tmp/pkg.' . uniqid() . '/';
         echo `mkdir $temp && cd $temp && tar xvpf $packageTar`;
 
@@ -360,8 +387,8 @@ class pkg
         /* Save into package table. */
         $sql  = "DELETE FROM package WHERE    name = '$package->name' AND version = '$package->version';";
         $sql .= "DELETE FROM file    WHERE package = '$package->name' AND version = '$package->version';";
-        $sql .= "INSERT INTO package (`name`, `version`, `desc`, `maintainer`, `depends`, `preuninstall`, `postuninstall`) 
-                 VALUES ('$package->name', '$package->version', '$package->desc', '$package->maintainer', '$package->depends', '$package->preuninstall', '$package->postuninstall')";
+        $sql .= "INSERT INTO package (`name`, `version`, `mode`, `desc`, `maintainer`, `depends`, `preuninstall`, `postuninstall`) 
+                 VALUES ('$package->name', '$package->version', '$package->mode', '$package->desc', '$package->maintainer', '$package->depends', '$package->preuninstall', '$package->postuninstall')";
         $this->dbh->exec($sql);
 
         /* Get files, copy them and then insert into file table. */
@@ -426,6 +453,9 @@ class pkg
         $keys = array('maintainer', 'preinstall', 'postinstall', 'preuninstall', 'postuninstall', 'depends');
         foreach($keys as $key) if(!isset($ini->$key)) $ini->$key = '';
 
+        /* Set the mode's default. */
+        if(empty($ini->mode)) $ini->mode = 'full';
+
         return $ini;
     }
 
@@ -464,9 +494,9 @@ class pkg
         /* Print packages. */
         foreach($packages as $package)
         {
-            $shortDesc  = substr($package['desc'], 0, $screenWidth - $nameMax - $versionMax - 10);
+            $shortDesc  = substr($package['desc'], 0, $screenWidth - $nameMax - $versionMax - 15);
             $shortDesc .= $shortDesc != $package['desc'] ? ' ...' : '';
-            echo str_pad($package['name'], $nameMax) . ' ' . str_pad($package['version'], $versionMax) . ' ' . "$shortDesc\n";
+            echo str_pad($package['name'], $nameMax) . ' ' . str_pad($package['version'], $versionMax) . ' ' . $package['mode'] . ' ' . "$shortDesc\n";
         }
     }
 
@@ -485,7 +515,7 @@ class pkg
         $sql     = "SELECT * FROM package WHERE name = '$package'";
         $result  = $this->dbh->query($sql);
         $package = $result->fetchArray();
-        echo "Name:$package[name]\nVersion:$package[version]\nDesc:$package[desc]\nMaintainer:$package[maintainer]\n\n";
+        echo "Name:$package[name]\nVersion:$package[version]\nMode:$package[mode]\nDesc:$package[desc]\nMaintainer:$package[maintainer]\n\n";
 
         /* Get files. */
         $files  = array();
