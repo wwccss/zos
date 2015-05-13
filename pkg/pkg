@@ -307,12 +307,13 @@ class pkg
         {
             if(!file_exists($file)) unset($files[$key]);
 
-            /* If the mode is lite, don't include the doc files. */
+            /* If the mode is lite, don't include doc and header files. */
             if($mode == 'lite') 
             {
                 if(strpos($file, '/usr/share/man')  !== false) unset($files[$key]);
                 if(strpos($file, '/usr/share/doc')  !== false) unset($files[$key]);
                 if(strpos($file, '/usr/share/info') !== false) unset($files[$key]);
+                if(strpos($file, '/usr/include/')   !== false) unset($files[$key]);
             }
         }
         return array_unique($files);
