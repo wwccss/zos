@@ -262,6 +262,9 @@ class pkg
             if(strpos($file, 'ld.so.cache') !== false or 
                strpos($file, 'aux-cache')   !== false) continue;
 
+            /* Skip git-core for sparsed file reason. */
+            if(strpos($file, '/usr/libexec/git-core') !== false) continue;
+
             /* Skip file not exists. */
             if(!file_exists($file))
             {
@@ -269,13 +272,12 @@ class pkg
                 continue;
             }
 
-            /* Copy the directory structure of the $file in $packageDir. */
-            $targetDir = rtrim($packageDir, '/') . dirname($file);
-            if(!is_dir($targetDir)) $this->copyStructure($file, $packageDir);
-
             /* Copy files. */
-            exec("cp $file $targetDir");
+            echo `cp --parents -av $file $packageDir`;    // Use parents options to copy direcoties.
         }
+
+        /* Manualy copy git-core directoy. */
+        if($package->name == 'git') echo `cp --parents -av /usr/libexec/git-core/ $packageDir`;
 
         /* Copy pkg.ini file. */
         $iniContents = file_get_contents($pkgIniFile);
@@ -344,42 +346,6 @@ class pkg
         }
 
         return array_unique($files);
-    }
-
-    /**
-     * Copy directory structure of a file in the target directory.
-     * 
-     * @param  string    $file 
-     * @param  string    $target 
-     * @access public
-     * @return void
-     */
-    public function copyStructure($file, $target)
-    {
-        /* First get the pathes of the file. */
-        $pathes = explode('/', dirname($file));
-        $level  = count($pathes);
-
-        /* Get the path from the root level. */
-        $structure = array();
-        $path = '/';
-        for($i = 1; $i < $level; $i ++)
-        {
-            $path .= $pathes[$i] . '/';
-            $structure[] = $path;
-        }
-
-        /* Make every path in the target directory, same owner, group, perms. */
-        foreach($structure as $path)
-        {
-            $targetPath = $target . $path;
-            if(is_dir($targetPath)) continue;
-
-            mkdir($targetPath);
-            chown($targetPath, fileowner($path));
-            chgrp($targetPath, filegroup($path));
-            chmod($targetPath, fileperms($path));
-        }
     }
 
     /**
