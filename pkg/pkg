@@ -269,8 +269,12 @@ class pkg
                 continue;
             }
 
+            /* Copy the directory structure of the $file in $packageDir. */
+            $targetDir = rtrim($packageDir, '/') . dirname($file);
+            if(!is_dir($targetDir)) $this->copyStructure($file, $packageDir);
+
             /* Copy files. */
-            echo `cp --parents -av $file $packageDir/`;    // Use --parents param to create parents directires.
+            exec("cp $file $targetDir");
         }
 
         /* Copy pkg.ini file. */
@@ -340,6 +344,42 @@ class pkg
         }
 
         return array_unique($files);
+    }
+
+    /**
+     * Copy directory structure of a file in the target directory.
+     * 
+     * @param  string    $file 
+     * @param  string    $target 
+     * @access public
+     * @return void
+     */
+    public function copyStructure($file, $target)
+    {
+        /* First get the pathes of the file. */
+        $pathes = explode('/', dirname($file));
+        $level  = count($pathes);
+
+        /* Get the path from the root level. */
+        $structure = array();
+        $path = '/';
+        for($i = 1; $i < $level; $i ++)
+        {
+            $path .= $pathes[$i] . '/';
+            $structure[] = $path;
+        }
+
+        /* Make every path in the target directory, same owner, group, perms. */
+        foreach($structure as $path)
+        {
+            $targetPath = $target . $path;
+            if(is_dir($targetPath)) continue;
+
+            mkdir($targetPath);
+            chown($targetPath, fileowner($path));
+            chgrp($targetPath, filegroup($path));
+            chmod($targetPath, fileperms($path));
+        }
     }
 
     /**

@@ -3,6 +3,8 @@
 /**
  * This shell is used to batch build packages after build lfs system.  
  */
+$mode = 'full';
+if(isset($argv[1])) $mode = $argv[1];
 $iniFiles = glob('./ini/*');
 foreach($iniFiles as $iniFile)
 {
@@ -14,5 +16,6 @@ foreach($iniFiles as $iniFile)
         continue;
     }
 
-    echo `pkg build $iniFile $logFile`;
+    echo `pkg build $iniFile $logFile $mode`;
+    exit;
 }
