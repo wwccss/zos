@@ -17,5 +17,4 @@ foreach($iniFiles as $iniFile)
     }
 
     echo `pkg build $iniFile $logFile $mode`;
-    exit;
 }
