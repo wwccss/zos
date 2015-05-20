@@ -11,7 +11,9 @@ sudo mkdir -v /tmp/minify/root
 sudo chown root:root /tmp/minify/root
 sudo chmod 750 /tmp/minify/root
 
-sudo rm -frv /tmp/minify/srv/mysql/ib*
+sudo rm -frv /tmp/minify/srv/mysql/ib_logfile0
+sudo rm -frv /tmp/minify/srv/mysql/ib_logfile1
+sudo rm -frv /tmp/minify/srv/mysql/debian.err
 
 sudo  rm -fr /tmp/minify/var/log
 sudo  mkdir -v /tmp/minify/var/log/httpd -p
