@@ -329,6 +329,6 @@
 /etc/httpd/sites/30.phpmyadmin.conf
 /srv/auth/svn/authz
 /srv/auth/svn/authz
-/srv/auth/pma/adduser.sh
-/srv/auth/pma/adduser.sh
-/srv/auth/pma/users
+/srv/auth/svn/adduser.sh
+/srv/auth/svn/adduser.sh
+/srv/auth/svn/users

@@ -1,6 +1,7 @@
 sudo mkdir /usr/binnew/
 sudo cp -Rav /usr/bin/basename   /usr/binnew
 sudo cp -Rav /usr/bin/cut        /usr/binnew
+sudo cp -Rav /usr/bin/clear      /usr/binnew
 sudo cp -Rav /usr/bin/diff       /usr/binnew
 sudo cp -Rav /usr/bin/dir        /usr/binnew
 sudo cp -Rav /usr/bin/dirname    /usr/binnew
@@ -31,6 +32,7 @@ sudo cp -Rav /usr/bin/ssh-keygen /usr/binnew
 sudo cp -Rav /usr/bin/sudo       /usr/binnew
 sudo cp -Rav /usr/bin/sz         /usr/binnew
 sudo cp -Rav /usr/bin/tail       /usr/binnew
+sudo cp -Rav /usr/bin/tput       /usr/binnew
 sudo cp -Rav /usr/bin/telnet     /usr/binnew
 sudo cp -Rav /usr/bin/top        /usr/binnew
 sudo cp -Rav /usr/bin/touch      /usr/binnew

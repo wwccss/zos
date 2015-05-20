@@ -21,9 +21,14 @@ sudo rm -frv /usr/bin/{ccmake,cmake,cmake-gui,cpack,ctest}
 sudo rm -frv /usr/share/cmake*
 
 echo 'rm locale file'
-sudo rm -fr /usr/share/locale
-sudo rm -fr /usr/lib/locale
+sudo rm -frv /usr/share/locale
+sudo rm -frv /usr/lib/locale
 
-sudo rm -fr /usr/php
-sudo rm -fr /usr/my.cnf
-sudo rm -fr /usr/my-new.cnf
+echo 'rm git files'
+sudo rm -frv /usr/libexec/git-core
+
+# rm unused files.
+sudo rm -frv /usr/php
+sudo rm -frv /usr/my.cnf
+sudo rm -frv /usr/my-new.cnf
+sudo rm -frv /sources
