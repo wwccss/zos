@@ -36,6 +36,7 @@ sudo cp -Rav /usr/bin/tput       /usr/binnew
 sudo cp -Rav /usr/bin/telnet     /usr/binnew
 sudo cp -Rav /usr/bin/top        /usr/binnew
 sudo cp -Rav /usr/bin/touch      /usr/binnew
+sudo cp -Rav /usr/bin/tr         /usr/binnew
 sudo cp -Rav /usr/bin/unzip      /usr/binnew
 sudo cp -Rav /usr/bin/uptime     /usr/binnew
 sudo cp -Rav /usr/bin/vi         /usr/binnew
@@ -49,6 +50,8 @@ sudo cp -Rav /usr/bin/which      /usr/binnew
 sudo cp -Rav /usr/bin/who        /usr/binnew
 sudo cp -Rav /usr/bin/whoami     /usr/binnew
 sudo cp -Rav /usr/bin/xargs      /usr/binnew
+sudo cp -Rav /usr/bin/grub-mkimage   /usr/binnew
+sudo cp -Rav /usr/bin/grub-mkrelpath /usr/binnew
 
 sudo cp -Rav /usr/bin/my_print_defaults /usr/binnew
 sudo cp -Rav /usr/bin/mysql             /usr/binnew
