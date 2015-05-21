@@ -56,22 +56,23 @@ $clientLang = $lang->$acceptLang;
   <style>
     a {transition: all 0.2s;}
     html{background-color:#06294e;}
-    body > div{margin: 12% auto; padding: 0; background-color: #FFF; border: 1px solid #DDD; box-shadow: 0px 2px 20px rgba(0, 0, 0, 0.2); border-radius: 6px; width: 700px;}
-    body{font-family: Tahoma; font-size:14px}
+    #container {margin: 12% auto; padding: 0; background-color: #FFF; border: 1px solid #DDD; box-shadow: 0px 2px 20px rgba(0, 0, 0, 0.2); border-radius: 6px; width: 700px;}
+    body{font-family: Tahoma; font-size:14px; text-align: center;}
     table{border:none; width: 100%}
-    tr, th, td{border:none}
+    tr, th, td{border:none;}
     a{text-decoration:none; color: #0D3D88; text-decoration: none;}
     a:visited{color: #0D3D88;}
     a:hover{color: #347AEB; text-decoration: none;}
     a:active, a:focus{color: #6298f0;}
+    img {border: none}
 
     #welcome{font-size:16px; padding: 20px; background: #fafafa; border-bottom: 1px solid #e5e5e5; border-radius: 6px 6px 0 0;}
     #logo{width:120px; border-right:1px solid #efefef}
    
     #links{font-size:14px}
-    #links > td{text-align: center; padding: 25px 10px}
-    #links > td:first-child{text-align: right;}
-    #links > td:last-child{text-align: left;}
+    #links td{text-align: center; padding: 25px 10px}
+    #links td:first-child{text-align: right;}
+    #links td:last-child{text-align: left;}
     #links a{display:inline-block; width:165px; height:54px; line-height:25px; padding:10px; border:1px solid #ddd; border-radius: 4px}
     #links a:hover {border-color: #ccc; box-shadow: 0 2px 4px rgba(0,0,0,0.15)}
     #actions {background:#f5f5f5; font-size:13px; height:30px; border-top: 1px solid #e5e5e5; padding: 5px 10px;}
@@ -80,7 +81,7 @@ $clientLang = $lang->$acceptLang;
   </style>
 </head>
 <body>
-  <div>
+  <div id='container'>
     <table align='center'>
       <tr><th id='welcome' colspan='3'><?php echo $clientLang->title;?></th></tr>
       <tr id='links'>
