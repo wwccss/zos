@@ -231,7 +231,7 @@ class pkg
         $package = $this->parsePackageINI($pkgIniFile);
 
         /* Set model, the default mode is full. full|lite. */
-        $mode = isset($params[2]) ? $params[2] : 'full';
+        $mode = (is_array($params) and isset($params[2])) ? $params[2] : 'full';
 
         /* Get files. */
         if(is_array($params))
